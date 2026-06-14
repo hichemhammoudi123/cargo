@@ -166,6 +166,71 @@ margin: 0 0.8em 0.2em -1.6em;
 vertical-align: middle;
 }
 .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+{ counter-reset: source-line 0; }
+pre.numberSource code > span
+{ position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+{ content: counter(source-line);
+position: relative; left: -1em; text-align: right; vertical-align: baseline;
+border: none; display: inline-block;
+-webkit-touch-callout: none; -webkit-user-select: none;
+-khtml-user-select: none; -moz-user-select: none;
+-ms-user-select: none; user-select: none;
+padding: 0 4px; width: 4em;
+color: #aaaaaa;
+}
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa; padding-left: 4px; }
+div.sourceCode
+{ }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } 
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.at { color: #7d9029; } 
+code span.bn { color: #40a070; } 
+code span.bu { color: #008000; } 
+code span.cf { color: #007020; font-weight: bold; } 
+code span.ch { color: #4070a0; } 
+code span.cn { color: #880000; } 
+code span.co { color: #60a0b0; font-style: italic; } 
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.do { color: #ba2121; font-style: italic; } 
+code span.dt { color: #902000; } 
+code span.dv { color: #40a070; } 
+code span.er { color: #ff0000; font-weight: bold; } 
+code span.ex { } 
+code span.fl { color: #40a070; } 
+code span.fu { color: #06287e; } 
+code span.im { color: #008000; font-weight: bold; } 
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.kw { color: #007020; font-weight: bold; } 
+code span.op { color: #666666; } 
+code span.ot { color: #007020; } 
+code span.pp { color: #bc7a00; } 
+code span.sc { color: #4070a0; } 
+code span.ss { color: #bb6688; } 
+code span.st { color: #4070a0; } 
+code span.va { color: #19177c; } 
+code span.vs { color: #4070a0; } 
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } 
 </style>
 </head>
 <body>
@@ -176,19 +241,606 @@ Delivery Service</h1>
 codebase (architecture docs, frontend source, mock data, status mapping
 engine)</p>
 <hr />
-<h2 id="executive-summary">Executive Summary</h2>
-<p>The Cargo Delivery Service is a centralized multi-carrier logistics
-platform. It unifies 4 major carriers (DHL, FedEx, UPS, Chronopost)
-under a single adapter interface with a sophisticated status mapping
-engine that translates 64+ carrier-specific status codes into 12 unified
-internal codes across 3 matching strategies (exact, regex, fuzzy). The
-frontend is a React + Vite + Tailwind TypeScript SPA with full CRUD on
-all entities, JWT-mock authentication, and multilingual support
+<h2 id="executive-summary">1. Executive Summary</h2>
+<p>Centralized multi-carrier logistics platform unifying <strong>DHL,
+FedEx, UPS, Chronopost</strong> under a single
+<code>CarrierAdapter</code> interface. The core engine is a 3-tier
+status mapper (exact → regex → fuzzy) translating 64+ carrier codes into
+12 unified internal codes. The React + Vite + Tailwind TypeScript SPA
+provides full CRUD, JWT mock authentication, and trilingual support
 (EN/FR/TR).</p>
-<p>The graph contains <strong>40 nodes</strong> and <strong>48
-edges</strong> organized into <strong>4 communities</strong>.</p>
 <hr />
-<h2 id="graph-statistics">Graph Statistics</h2>
+<h2 id="api-complete-endpoints-with-json">2. API — Complete Endpoints
+with JSON</h2>
+<h3 id="reference-table-20-endpoints">2.1 Reference Table (20
+endpoints)</h3>
+<table>
+<colgroup>
+<col style="width: 20%" />
+<col style="width: 20%" />
+<col style="width: 20%" />
+<col style="width: 20%" />
+<col style="width: 20%" />
+</colgroup>
+<thead>
+<tr>
+<th>#</th>
+<th>Method</th>
+<th>Path</th>
+<th>Purpose</th>
+<th>Frontend Page</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>POST</td>
+<td><code>/api/v1/cargo/auth/login</code></td>
+<td>Authenticate &amp; get JWT token</td>
+<td>Login</td>
+</tr>
+<tr>
+<td>2</td>
+<td>POST</td>
+<td><code>/api/v1/cargo/rates</code></td>
+<td>Get carrier pricing</td>
+<td>Rates</td>
+</tr>
+<tr>
+<td>3</td>
+<td>POST</td>
+<td><code>/api/v1/cargo/shipments</code></td>
+<td>Create a shipment</td>
+<td>Shipments</td>
+</tr>
+<tr>
+<td>4</td>
+<td>GET</td>
+<td><code>/api/v1/cargo/shipments</code></td>
+<td>List shipments</td>
+<td>Shipments</td>
+</tr>
+<tr>
+<td>5</td>
+<td>GET</td>
+<td><code>/api/v1/cargo/shipments/{id}</code></td>
+<td>Shipment detail + status history</td>
+<td>ShipmentDetail</td>
+</tr>
+<tr>
+<td>6</td>
+<td>GET</td>
+<td><code>/api/v1/cargo/shipments/{id}/tracking</code></td>
+<td>Detailed tracking events</td>
+<td>ShipmentDetail</td>
+</tr>
+<tr>
+<td>7</td>
+<td>POST</td>
+<td><code>/api/v1/cargo/shipments/{id}/cancel</code></td>
+<td>Cancel a shipment</td>
+<td>ShipmentDetail</td>
+</tr>
+<tr>
+<td>8</td>
+<td>POST</td>
+<td><code>/api/v1/cargo/shipments/{id}/label</code></td>
+<td>Generate shipping label</td>
+<td>ShipmentDetail</td>
+</tr>
+<tr>
+<td>9</td>
+<td>POST</td>
+<td><code>/api/v1/cargo/pickups</code></td>
+<td>Schedule a pickup</td>
+<td>Pickups</td>
+</tr>
+<tr>
+<td>10</td>
+<td>POST</td>
+<td><code>/api/v1/cargo/webhooks/{carrierCode}</code></td>
+<td>Receive carrier push updates</td>
+<td>WebhookLogs</td>
+</tr>
+<tr>
+<td>11</td>
+<td>POST</td>
+<td><code>/api/v1/cargo/addresses/validate</code></td>
+<td>Validate &amp; normalize address</td>
+<td>Shipments form</td>
+</tr>
+<tr>
+<td>12</td>
+<td>POST</td>
+<td><code>/api/v1/cargo/carriers</code></td>
+<td>Add a carrier</td>
+<td>Carriers</td>
+</tr>
+<tr>
+<td>13</td>
+<td>GET</td>
+<td><code>/api/v1/cargo/carriers</code></td>
+<td>List carriers</td>
+<td>Carriers</td>
+</tr>
+<tr>
+<td>14</td>
+<td>GET</td>
+<td><code>/api/v1/cargo/carriers/{code}</code></td>
+<td>Carrier detail</td>
+<td>CarrierDetail</td>
+</tr>
+<tr>
+<td>15</td>
+<td>PUT</td>
+<td><code>/api/v1/cargo/carriers/{code}</code></td>
+<td>Update carrier settings</td>
+<td>CarrierDetail</td>
+</tr>
+<tr>
+<td>16</td>
+<td>PATCH</td>
+<td><code>/api/v1/cargo/carriers/{code}/toggle</code></td>
+<td>Enable/disable carrier</td>
+<td>CarrierDetail</td>
+</tr>
+<tr>
+<td>17</td>
+<td>POST</td>
+<td><code>/api/v1/cargo/carriers/{code}/test</code></td>
+<td>Test carrier API connection</td>
+<td>CarrierDetail</td>
+</tr>
+<tr>
+<td>18</td>
+<td>POST</td>
+<td><code>/api/v1/cargo/carriers/{code}/services</code></td>
+<td>Add a service</td>
+<td>CarrierDetail</td>
+</tr>
+<tr>
+<td>19</td>
+<td>PUT</td>
+<td><code>/api/v1/cargo/carriers/{code}/credentials</code></td>
+<td>Update API keys</td>
+<td>CarrierDetail</td>
+</tr>
+<tr>
+<td>20</td>
+<td>DELETE</td>
+<td><code>/api/v1/cargo/carriers/{code}</code></td>
+<td>Delete a carrier</td>
+<td>Carriers</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h3 id="post-creation-action">2.2 POST — Creation / Action</h3>
+<h4 id="post-apiv1cargoauthlogin"><code>POST /api/v1/cargo/auth/login</code></h4>
+<p>Authenticate user and return a mock JWT token.</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="er">//</span> <span class="er">Request</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span> <span class="dt">&quot;email&quot;</span><span class="fu">:</span> <span class="st">&quot;admin@cargo.com&quot;</span><span class="fu">,</span> <span class="dt">&quot;password&quot;</span><span class="fu">:</span> <span class="st">&quot;admin&quot;</span> <span class="fu">}</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="er">//</span> <span class="er">Response</span> <span class="dv">200</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;success&quot;</span><span class="fu">:</span> <span class="kw">true</span><span class="fu">,</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;user&quot;</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">&quot;email&quot;</span><span class="fu">:</span> <span class="st">&quot;admin@cargo.com&quot;</span><span class="fu">,</span> <span class="dt">&quot;name&quot;</span><span class="fu">:</span> <span class="st">&quot;admin&quot;</span><span class="fu">,</span> <span class="dt">&quot;role&quot;</span><span class="fu">:</span> <span class="st">&quot;admin&quot;</span> <span class="fu">},</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;token&quot;</span><span class="fu">:</span> <span class="st">&quot;mock-jwt-a1b2c3d4&quot;</span></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<h4 id="post-apiv1cargorates"><code>POST /api/v1/cargo/rates</code></h4>
+<p>Compare prices from all active carriers for a shipment.</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="er">//</span> <span class="er">Request</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;sender&quot;</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">&quot;country&quot;</span><span class="fu">:</span> <span class="st">&quot;FR&quot;</span><span class="fu">,</span> <span class="dt">&quot;zipCode&quot;</span><span class="fu">:</span> <span class="st">&quot;75001&quot;</span><span class="fu">,</span> <span class="dt">&quot;city&quot;</span><span class="fu">:</span> <span class="st">&quot;Paris&quot;</span><span class="fu">,</span> <span class="dt">&quot;address&quot;</span><span class="fu">:</span> <span class="st">&quot;12 Rue de Rivoli&quot;</span> <span class="fu">},</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;recipient&quot;</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">&quot;country&quot;</span><span class="fu">:</span> <span class="st">&quot;DE&quot;</span><span class="fu">,</span> <span class="dt">&quot;zipCode&quot;</span><span class="fu">:</span> <span class="st">&quot;10115&quot;</span><span class="fu">,</span> <span class="dt">&quot;city&quot;</span><span class="fu">:</span> <span class="st">&quot;Berlin&quot;</span><span class="fu">,</span> <span class="dt">&quot;address&quot;</span><span class="fu">:</span> <span class="st">&quot;Friedrichstraße 100&quot;</span> <span class="fu">},</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;packages&quot;</span><span class="fu">:</span> <span class="ot">[</span><span class="fu">{</span> <span class="dt">&quot;weight&quot;</span><span class="fu">:</span> <span class="fl">2.5</span><span class="fu">,</span> <span class="dt">&quot;weightUnit&quot;</span><span class="fu">:</span> <span class="st">&quot;KG&quot;</span><span class="fu">,</span> <span class="dt">&quot;length&quot;</span><span class="fu">:</span> <span class="dv">30</span><span class="fu">,</span> <span class="dt">&quot;width&quot;</span><span class="fu">:</span> <span class="dv">20</span><span class="fu">,</span> <span class="dt">&quot;height&quot;</span><span class="fu">:</span> <span class="dv">15</span><span class="fu">,</span> <span class="dt">&quot;dimUnit&quot;</span><span class="fu">:</span> <span class="st">&quot;CM&quot;</span> <span class="fu">}</span><span class="ot">]</span><span class="fu">,</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;options&quot;</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">&quot;carrierCodes&quot;</span><span class="fu">:</span> <span class="ot">[</span><span class="st">&quot;DHL&quot;</span><span class="ot">,</span> <span class="st">&quot;FEDEX&quot;</span><span class="ot">]</span><span class="fu">,</span> <span class="dt">&quot;serviceType&quot;</span><span class="fu">:</span> <span class="st">&quot;EXPRESS&quot;</span> <span class="fu">}</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a><span class="er">//</span> <span class="er">Response</span> <span class="dv">200</span></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;success&quot;</span><span class="fu">:</span> <span class="kw">true</span><span class="fu">,</span></span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;data&quot;</span><span class="fu">:</span> <span class="ot">[</span></span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>    <span class="fu">{</span></span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;carrierCode&quot;</span><span class="fu">:</span> <span class="st">&quot;DHL&quot;</span><span class="fu">,</span> <span class="dt">&quot;carrierName&quot;</span><span class="fu">:</span> <span class="st">&quot;DHL Express&quot;</span><span class="fu">,</span></span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;serviceCode&quot;</span><span class="fu">:</span> <span class="st">&quot;DHL_EXPRESS_WORLDWIDE&quot;</span><span class="fu">,</span> <span class="dt">&quot;serviceName&quot;</span><span class="fu">:</span> <span class="st">&quot;Express Worldwide&quot;</span><span class="fu">,</span></span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;totalPrice&quot;</span><span class="fu">:</span> <span class="fl">45.30</span><span class="fu">,</span> <span class="dt">&quot;currency&quot;</span><span class="fu">:</span> <span class="st">&quot;EUR&quot;</span><span class="fu">,</span></span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;estimatedTransitDays&quot;</span><span class="fu">:</span> <span class="dv">2</span><span class="fu">,</span> <span class="dt">&quot;estimatedDeliveryDate&quot;</span><span class="fu">:</span> <span class="st">&quot;2026-06-13&quot;</span><span class="fu">,</span></span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;breakdown&quot;</span><span class="fu">:</span> <span class="ot">[</span></span>
+<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a>        <span class="fu">{</span> <span class="dt">&quot;type&quot;</span><span class="fu">:</span> <span class="st">&quot;BASE&quot;</span><span class="fu">,</span> <span class="dt">&quot;label&quot;</span><span class="fu">:</span> <span class="st">&quot;Transport&quot;</span><span class="fu">,</span> <span class="dt">&quot;amount&quot;</span><span class="fu">:</span> <span class="fl">38.00</span> <span class="fu">}</span><span class="ot">,</span></span>
+<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a>        <span class="fu">{</span> <span class="dt">&quot;type&quot;</span><span class="fu">:</span> <span class="st">&quot;FUEL&quot;</span><span class="fu">,</span> <span class="dt">&quot;label&quot;</span><span class="fu">:</span> <span class="st">&quot;Fuel surcharge&quot;</span><span class="fu">,</span> <span class="dt">&quot;amount&quot;</span><span class="fu">:</span> <span class="fl">5.30</span> <span class="fu">}</span><span class="ot">,</span></span>
+<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a>        <span class="fu">{</span> <span class="dt">&quot;type&quot;</span><span class="fu">:</span> <span class="st">&quot;INSURANCE&quot;</span><span class="fu">,</span> <span class="dt">&quot;label&quot;</span><span class="fu">:</span> <span class="st">&quot;Insurance&quot;</span><span class="fu">,</span> <span class="dt">&quot;amount&quot;</span><span class="fu">:</span> <span class="fl">2.00</span> <span class="fu">}</span></span>
+<span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a>      <span class="ot">]</span></span>
+<span id="cb2-23"><a href="#cb2-23" aria-hidden="true" tabindex="-1"></a>    <span class="fu">}</span><span class="ot">,</span></span>
+<span id="cb2-24"><a href="#cb2-24" aria-hidden="true" tabindex="-1"></a>    <span class="fu">{</span></span>
+<span id="cb2-25"><a href="#cb2-25" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;carrierCode&quot;</span><span class="fu">:</span> <span class="st">&quot;FEDEX&quot;</span><span class="fu">,</span> <span class="dt">&quot;carrierName&quot;</span><span class="fu">:</span> <span class="st">&quot;FedEx&quot;</span><span class="fu">,</span></span>
+<span id="cb2-26"><a href="#cb2-26" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;serviceCode&quot;</span><span class="fu">:</span> <span class="st">&quot;FEDEX_PRIORITY&quot;</span><span class="fu">,</span> <span class="dt">&quot;serviceName&quot;</span><span class="fu">:</span> <span class="st">&quot;FedEx Priority&quot;</span><span class="fu">,</span></span>
+<span id="cb2-27"><a href="#cb2-27" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;totalPrice&quot;</span><span class="fu">:</span> <span class="fl">48.50</span><span class="fu">,</span> <span class="dt">&quot;currency&quot;</span><span class="fu">:</span> <span class="st">&quot;EUR&quot;</span><span class="fu">,</span></span>
+<span id="cb2-28"><a href="#cb2-28" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;estimatedTransitDays&quot;</span><span class="fu">:</span> <span class="dv">1</span><span class="fu">,</span> <span class="dt">&quot;estimatedDeliveryDate&quot;</span><span class="fu">:</span> <span class="st">&quot;2026-06-12&quot;</span><span class="fu">,</span></span>
+<span id="cb2-29"><a href="#cb2-29" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;breakdown&quot;</span><span class="fu">:</span> <span class="ot">[</span></span>
+<span id="cb2-30"><a href="#cb2-30" aria-hidden="true" tabindex="-1"></a>        <span class="fu">{</span> <span class="dt">&quot;type&quot;</span><span class="fu">:</span> <span class="st">&quot;BASE&quot;</span><span class="fu">,</span> <span class="dt">&quot;label&quot;</span><span class="fu">:</span> <span class="st">&quot;Transport&quot;</span><span class="fu">,</span> <span class="dt">&quot;amount&quot;</span><span class="fu">:</span> <span class="fl">41.00</span> <span class="fu">}</span><span class="ot">,</span></span>
+<span id="cb2-31"><a href="#cb2-31" aria-hidden="true" tabindex="-1"></a>        <span class="fu">{</span> <span class="dt">&quot;type&quot;</span><span class="fu">:</span> <span class="st">&quot;FUEL&quot;</span><span class="fu">,</span> <span class="dt">&quot;label&quot;</span><span class="fu">:</span> <span class="st">&quot;Fuel surcharge&quot;</span><span class="fu">,</span> <span class="dt">&quot;amount&quot;</span><span class="fu">:</span> <span class="fl">5.50</span> <span class="fu">}</span><span class="ot">,</span></span>
+<span id="cb2-32"><a href="#cb2-32" aria-hidden="true" tabindex="-1"></a>        <span class="fu">{</span> <span class="dt">&quot;type&quot;</span><span class="fu">:</span> <span class="st">&quot;INSURANCE&quot;</span><span class="fu">,</span> <span class="dt">&quot;label&quot;</span><span class="fu">:</span> <span class="st">&quot;Insurance&quot;</span><span class="fu">,</span> <span class="dt">&quot;amount&quot;</span><span class="fu">:</span> <span class="fl">2.00</span> <span class="fu">}</span></span>
+<span id="cb2-33"><a href="#cb2-33" aria-hidden="true" tabindex="-1"></a>      <span class="ot">]</span></span>
+<span id="cb2-34"><a href="#cb2-34" aria-hidden="true" tabindex="-1"></a>    <span class="fu">}</span></span>
+<span id="cb2-35"><a href="#cb2-35" aria-hidden="true" tabindex="-1"></a>  <span class="ot">]</span></span>
+<span id="cb2-36"><a href="#cb2-36" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<h4 id="post-apiv1cargoshipments"><code>POST /api/v1/cargo/shipments</code></h4>
+<p>Create a real shipment with a carrier. Payload: sender + recipient +
+packages + options.</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="er">//</span> <span class="er">Request</span> <span class="er">(</span><span class="dv">20</span><span class="er">+</span> <span class="er">fields)</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;carrierCode&quot;</span><span class="fu">:</span> <span class="st">&quot;DHL&quot;</span><span class="fu">,</span> <span class="dt">&quot;serviceCode&quot;</span><span class="fu">:</span> <span class="st">&quot;DHL_EXPRESS_WORLDWIDE&quot;</span><span class="fu">,</span> <span class="dt">&quot;reference&quot;</span><span class="fu">:</span> <span class="st">&quot;ORD-2026-001234&quot;</span><span class="fu">,</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;sender&quot;</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">&quot;company&quot;</span><span class="fu">:</span> <span class="st">&quot;TechCorp Inc&quot;</span><span class="fu">,</span> <span class="dt">&quot;contactName&quot;</span><span class="fu">:</span> <span class="st">&quot;John Doe&quot;</span><span class="fu">,</span> <span class="dt">&quot;email&quot;</span><span class="fu">:</span> <span class="st">&quot;john@techcorp.com&quot;</span><span class="fu">,</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;phone&quot;</span><span class="fu">:</span> <span class="st">&quot;+33123456789&quot;</span><span class="fu">,</span> <span class="dt">&quot;country&quot;</span><span class="fu">:</span> <span class="st">&quot;FR&quot;</span><span class="fu">,</span> <span class="dt">&quot;zipCode&quot;</span><span class="fu">:</span> <span class="st">&quot;75001&quot;</span><span class="fu">,</span> <span class="dt">&quot;city&quot;</span><span class="fu">:</span> <span class="st">&quot;Paris&quot;</span><span class="fu">,</span> <span class="dt">&quot;address&quot;</span><span class="fu">:</span> <span class="st">&quot;12 Rue de Rivoli&quot;</span> <span class="fu">},</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;recipient&quot;</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">&quot;company&quot;</span><span class="fu">:</span> <span class="st">&quot;Berlin GmbH&quot;</span><span class="fu">,</span> <span class="dt">&quot;contactName&quot;</span><span class="fu">:</span> <span class="st">&quot;Hans Schmidt&quot;</span><span class="fu">,</span> <span class="dt">&quot;email&quot;</span><span class="fu">:</span> <span class="st">&quot;hans@berlin.de&quot;</span><span class="fu">,</span></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;phone&quot;</span><span class="fu">:</span> <span class="st">&quot;+4930123456&quot;</span><span class="fu">,</span> <span class="dt">&quot;country&quot;</span><span class="fu">:</span> <span class="st">&quot;DE&quot;</span><span class="fu">,</span> <span class="dt">&quot;zipCode&quot;</span><span class="fu">:</span> <span class="st">&quot;10115&quot;</span><span class="fu">,</span> <span class="dt">&quot;city&quot;</span><span class="fu">:</span> <span class="st">&quot;Berlin&quot;</span><span class="fu">,</span> <span class="dt">&quot;address&quot;</span><span class="fu">:</span> <span class="st">&quot;Friedrichstraße 100&quot;</span> <span class="fu">},</span></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;packages&quot;</span><span class="fu">:</span> <span class="ot">[</span><span class="fu">{</span></span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;reference&quot;</span><span class="fu">:</span> <span class="st">&quot;PARCEL-001&quot;</span><span class="fu">,</span> <span class="dt">&quot;description&quot;</span><span class="fu">:</span> <span class="st">&quot;Electronic components&quot;</span><span class="fu">,</span></span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;weight&quot;</span><span class="fu">:</span> <span class="fl">2.5</span><span class="fu">,</span> <span class="dt">&quot;weightUnit&quot;</span><span class="fu">:</span> <span class="st">&quot;KG&quot;</span><span class="fu">,</span> <span class="dt">&quot;length&quot;</span><span class="fu">:</span> <span class="dv">30</span><span class="fu">,</span> <span class="dt">&quot;width&quot;</span><span class="fu">:</span> <span class="dv">20</span><span class="fu">,</span> <span class="dt">&quot;height&quot;</span><span class="fu">:</span> <span class="dv">15</span><span class="fu">,</span> <span class="dt">&quot;dimUnit&quot;</span><span class="fu">:</span> <span class="st">&quot;CM&quot;</span><span class="fu">,</span></span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;declaredValue&quot;</span><span class="fu">:</span> <span class="fl">500.00</span><span class="fu">,</span> <span class="dt">&quot;declaredCurrency&quot;</span><span class="fu">:</span> <span class="st">&quot;EUR&quot;</span></span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">}</span><span class="ot">]</span><span class="fu">,</span></span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;options&quot;</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">&quot;insurance&quot;</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">&quot;amount&quot;</span><span class="fu">:</span> <span class="fl">500.00</span><span class="fu">,</span> <span class="dt">&quot;currency&quot;</span><span class="fu">:</span> <span class="st">&quot;EUR&quot;</span> <span class="fu">},</span> <span class="dt">&quot;signatureRequired&quot;</span><span class="fu">:</span> <span class="kw">true</span> <span class="fu">}</span></span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a><span class="er">//</span> <span class="er">Response</span> <span class="dv">201</span></span>
+<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;success&quot;</span><span class="fu">:</span> <span class="kw">true</span><span class="fu">,</span></span>
+<span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;data&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb3-20"><a href="#cb3-20" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;id&quot;</span><span class="fu">:</span> <span class="st">&quot;shp_a1b2c3d4e5&quot;</span><span class="fu">,</span> <span class="dt">&quot;status&quot;</span><span class="fu">:</span> <span class="st">&quot;CREATED&quot;</span><span class="fu">,</span></span>
+<span id="cb3-21"><a href="#cb3-21" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;carrierCode&quot;</span><span class="fu">:</span> <span class="st">&quot;DHL&quot;</span><span class="fu">,</span> <span class="dt">&quot;carrierTrackingNumber&quot;</span><span class="fu">:</span> <span class="st">&quot;1234567890&quot;</span><span class="fu">,</span></span>
+<span id="cb3-22"><a href="#cb3-22" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;labelUrl&quot;</span><span class="fu">:</span> <span class="st">&quot;https://api.dhl.com/labels/1234567890.pdf&quot;</span><span class="fu">,</span></span>
+<span id="cb3-23"><a href="#cb3-23" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;trackingUrl&quot;</span><span class="fu">:</span> <span class="st">&quot;https://www.dhl.com/track/1234567890&quot;</span><span class="fu">,</span></span>
+<span id="cb3-24"><a href="#cb3-24" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;price&quot;</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">&quot;total&quot;</span><span class="fu">:</span> <span class="fl">45.30</span><span class="fu">,</span> <span class="dt">&quot;currency&quot;</span><span class="fu">:</span> <span class="st">&quot;EUR&quot;</span><span class="fu">,</span> <span class="dt">&quot;breakdown&quot;</span><span class="fu">:</span> <span class="ot">[</span></span>
+<span id="cb3-25"><a href="#cb3-25" aria-hidden="true" tabindex="-1"></a>      <span class="fu">{</span> <span class="dt">&quot;type&quot;</span><span class="fu">:</span> <span class="st">&quot;BASE&quot;</span><span class="fu">,</span> <span class="dt">&quot;amount&quot;</span><span class="fu">:</span> <span class="fl">38.00</span> <span class="fu">}</span><span class="ot">,</span> <span class="fu">{</span> <span class="dt">&quot;type&quot;</span><span class="fu">:</span> <span class="st">&quot;FUEL&quot;</span><span class="fu">,</span> <span class="dt">&quot;amount&quot;</span><span class="fu">:</span> <span class="fl">5.30</span> <span class="fu">}</span><span class="ot">,</span> <span class="fu">{</span> <span class="dt">&quot;type&quot;</span><span class="fu">:</span> <span class="st">&quot;INSURANCE&quot;</span><span class="fu">,</span> <span class="dt">&quot;amount&quot;</span><span class="fu">:</span> <span class="fl">2.00</span> <span class="fu">}</span></span>
+<span id="cb3-26"><a href="#cb3-26" aria-hidden="true" tabindex="-1"></a>    <span class="ot">]</span><span class="fu">},</span></span>
+<span id="cb3-27"><a href="#cb3-27" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;estimatedDeliveryDate&quot;</span><span class="fu">:</span> <span class="st">&quot;2026-06-13T18:00:00Z&quot;</span><span class="fu">,</span></span>
+<span id="cb3-28"><a href="#cb3-28" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;createdAt&quot;</span><span class="fu">:</span> <span class="st">&quot;2026-06-11T10:30:00Z&quot;</span></span>
+<span id="cb3-29"><a href="#cb3-29" aria-hidden="true" tabindex="-1"></a>  <span class="fu">}</span></span>
+<span id="cb3-30"><a href="#cb3-30" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<h4 id="post-apiv1cargoshipmentsidcancel"><code>POST /api/v1/cargo/shipments/{id}/cancel</code></h4>
+<p>Cancel a shipment. Status changes to <code>CANCELLED</code>.</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="er">//</span> <span class="er">Response</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;success&quot;</span><span class="fu">:</span> <span class="kw">true</span><span class="fu">,</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;data&quot;</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">&quot;id&quot;</span><span class="fu">:</span> <span class="st">&quot;shp_a1b2c3d4e5&quot;</span><span class="fu">,</span> <span class="dt">&quot;status&quot;</span><span class="fu">:</span> <span class="st">&quot;CANCELLED&quot;</span><span class="fu">,</span> <span class="dt">&quot;cancelledAt&quot;</span><span class="fu">:</span> <span class="st">&quot;2026-06-11T12:00:00Z&quot;</span> <span class="fu">}</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<h4 id="post-apiv1cargoshipmentsidlabel"><code>POST /api/v1/cargo/shipments/{id}/label</code></h4>
+<p>Generate the shipping label in the requested format (PDF, ZPL).</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="er">//</span> <span class="er">Request</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span> <span class="dt">&quot;format&quot;</span><span class="fu">:</span> <span class="st">&quot;PDF&quot;</span> <span class="fu">}</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a><span class="er">//</span> <span class="er">Response</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;success&quot;</span><span class="fu">:</span> <span class="kw">true</span><span class="fu">,</span></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;data&quot;</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">&quot;labelUrl&quot;</span><span class="fu">:</span> <span class="st">&quot;https://api.dhl.com/labels/1234567890.pdf&quot;</span><span class="fu">,</span> <span class="dt">&quot;format&quot;</span><span class="fu">:</span> <span class="st">&quot;PDF&quot;</span><span class="fu">,</span> <span class="dt">&quot;size&quot;</span><span class="fu">:</span> <span class="st">&quot;A6&quot;</span><span class="fu">,</span> <span class="dt">&quot;generatedAt&quot;</span><span class="fu">:</span> <span class="st">&quot;2026-06-11T10:30:00Z&quot;</span> <span class="fu">}</span></span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<h4 id="post-apiv1cargopickups"><code>POST /api/v1/cargo/pickups</code></h4>
+<p>Schedule a carrier pickup.</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="er">//</span> <span class="er">Request</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;carrierCode&quot;</span><span class="fu">:</span> <span class="st">&quot;DHL&quot;</span><span class="fu">,</span> <span class="dt">&quot;shipmentIds&quot;</span><span class="fu">:</span> <span class="ot">[</span><span class="st">&quot;shp_a1b2c3d4e5&quot;</span><span class="ot">]</span><span class="fu">,</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;pickupDate&quot;</span><span class="fu">:</span> <span class="st">&quot;2026-06-12&quot;</span><span class="fu">,</span> <span class="dt">&quot;readyTime&quot;</span><span class="fu">:</span> <span class="st">&quot;09:00&quot;</span><span class="fu">,</span> <span class="dt">&quot;closeTime&quot;</span><span class="fu">:</span> <span class="st">&quot;17:00&quot;</span><span class="fu">,</span></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;location&quot;</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">&quot;company&quot;</span><span class="fu">:</span> <span class="st">&quot;TechCorp Inc&quot;</span><span class="fu">,</span> <span class="dt">&quot;contactName&quot;</span><span class="fu">:</span> <span class="st">&quot;John Doe&quot;</span><span class="fu">,</span> <span class="dt">&quot;phone&quot;</span><span class="fu">:</span> <span class="st">&quot;+33123456789&quot;</span><span class="fu">,</span></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;country&quot;</span><span class="fu">:</span> <span class="st">&quot;FR&quot;</span><span class="fu">,</span> <span class="dt">&quot;zipCode&quot;</span><span class="fu">:</span> <span class="st">&quot;75001&quot;</span><span class="fu">,</span> <span class="dt">&quot;city&quot;</span><span class="fu">:</span> <span class="st">&quot;Paris&quot;</span><span class="fu">,</span> <span class="dt">&quot;address&quot;</span><span class="fu">:</span> <span class="st">&quot;12 Rue de Rivoli&quot;</span> <span class="fu">},</span></span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;totalPackages&quot;</span><span class="fu">:</span> <span class="dv">1</span><span class="fu">,</span> <span class="dt">&quot;totalWeight&quot;</span><span class="fu">:</span> <span class="fl">2.5</span><span class="fu">,</span> <span class="dt">&quot;weightUnit&quot;</span><span class="fu">:</span> <span class="st">&quot;KG&quot;</span><span class="fu">,</span></span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;specialInstructions&quot;</span><span class="fu">:</span> <span class="st">&quot;Ring at reception&quot;</span></span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a><span class="er">//</span> <span class="er">Response</span></span>
+<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;success&quot;</span><span class="fu">:</span> <span class="kw">true</span><span class="fu">,</span></span>
+<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;data&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb6-15"><a href="#cb6-15" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;id&quot;</span><span class="fu">:</span> <span class="st">&quot;pck_001a2b3c&quot;</span><span class="fu">,</span> <span class="dt">&quot;carrierCode&quot;</span><span class="fu">:</span> <span class="st">&quot;DHL&quot;</span><span class="fu">,</span> <span class="dt">&quot;carrierPickupId&quot;</span><span class="fu">:</span> <span class="st">&quot;DHL-PICKUP-98765&quot;</span><span class="fu">,</span></span>
+<span id="cb6-16"><a href="#cb6-16" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;status&quot;</span><span class="fu">:</span> <span class="st">&quot;CONFIRMED&quot;</span><span class="fu">,</span> <span class="dt">&quot;pickupDate&quot;</span><span class="fu">:</span> <span class="st">&quot;2026-06-12&quot;</span><span class="fu">,</span></span>
+<span id="cb6-17"><a href="#cb6-17" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;readyTime&quot;</span><span class="fu">:</span> <span class="st">&quot;09:00&quot;</span><span class="fu">,</span> <span class="dt">&quot;closeTime&quot;</span><span class="fu">:</span> <span class="st">&quot;17:00&quot;</span><span class="fu">,</span></span>
+<span id="cb6-18"><a href="#cb6-18" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;confirmationNumber&quot;</span><span class="fu">:</span> <span class="st">&quot;CONF-ABC-123&quot;</span></span>
+<span id="cb6-19"><a href="#cb6-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">}</span></span>
+<span id="cb6-20"><a href="#cb6-20" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<h4 id="post-apiv1cargowebhookscarriercode"><code>POST /api/v1/cargo/webhooks/{carrierCode}</code></h4>
+<p>Entry point for carrier push notifications. Always returns 200.</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="er">//</span> <span class="er">Request</span> <span class="er">(sent</span> <span class="er">by</span> <span class="er">DHL)</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;shipmentId&quot;</span><span class="fu">:</span> <span class="st">&quot;1234567890&quot;</span><span class="fu">,</span> <span class="dt">&quot;status&quot;</span><span class="fu">:</span> <span class="st">&quot;DELIVERED&quot;</span><span class="fu">,</span> <span class="dt">&quot;statusDescription&quot;</span><span class="fu">:</span> <span class="st">&quot;Shipment delivered&quot;</span><span class="fu">,</span></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;timestamp&quot;</span><span class="fu">:</span> <span class="st">&quot;2026-06-13T16:30:00Z&quot;</span><span class="fu">,</span></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;location&quot;</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">&quot;city&quot;</span><span class="fu">:</span> <span class="st">&quot;Berlin&quot;</span><span class="fu">,</span> <span class="dt">&quot;country&quot;</span><span class="fu">:</span> <span class="st">&quot;DE&quot;</span><span class="fu">,</span> <span class="dt">&quot;zipCode&quot;</span><span class="fu">:</span> <span class="st">&quot;10115&quot;</span> <span class="fu">},</span></span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;signedBy&quot;</span><span class="fu">:</span> <span class="st">&quot;Hans Schmidt&quot;</span><span class="fu">,</span> <span class="dt">&quot;deliveryPhotoUrl&quot;</span><span class="fu">:</span> <span class="st">&quot;https://dhl.com/proof/photo.jpg&quot;</span></span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a><span class="er">//</span> <span class="er">Response</span> <span class="er">(always</span> <span class="dv">200</span><span class="er">)</span></span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span> <span class="dt">&quot;success&quot;</span><span class="fu">:</span> <span class="kw">true</span><span class="fu">,</span> <span class="dt">&quot;message&quot;</span><span class="fu">:</span> <span class="st">&quot;Webhook processed successfully&quot;</span> <span class="fu">}</span></span></code></pre></div>
+<h4 id="post-apiv1cargoaddressesvalidate"><code>POST /api/v1/cargo/addresses/validate</code></h4>
+<p>Validate and normalize an address via the carrier (real-time
+check).</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="er">//</span> <span class="er">Request</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span> <span class="dt">&quot;country&quot;</span><span class="fu">:</span> <span class="st">&quot;FR&quot;</span><span class="fu">,</span> <span class="dt">&quot;zipCode&quot;</span><span class="fu">:</span> <span class="st">&quot;75001&quot;</span><span class="fu">,</span> <span class="dt">&quot;city&quot;</span><span class="fu">:</span> <span class="st">&quot;Paris&quot;</span><span class="fu">,</span> <span class="dt">&quot;address&quot;</span><span class="fu">:</span> <span class="st">&quot;12 Rue de Rivoli&quot;</span><span class="fu">,</span> <span class="dt">&quot;carrierCode&quot;</span><span class="fu">:</span> <span class="st">&quot;DHL&quot;</span> <span class="fu">}</span></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a><span class="er">//</span> <span class="er">Response</span></span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;success&quot;</span><span class="fu">:</span> <span class="kw">true</span><span class="fu">,</span></span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;data&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;valid&quot;</span><span class="fu">:</span> <span class="kw">true</span><span class="fu">,</span></span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;normalizedAddress&quot;</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">&quot;country&quot;</span><span class="fu">:</span> <span class="st">&quot;FR&quot;</span><span class="fu">,</span> <span class="dt">&quot;zipCode&quot;</span><span class="fu">:</span> <span class="st">&quot;75001&quot;</span><span class="fu">,</span> <span class="dt">&quot;city&quot;</span><span class="fu">:</span> <span class="st">&quot;PARIS&quot;</span><span class="fu">,</span> <span class="dt">&quot;address&quot;</span><span class="fu">:</span> <span class="st">&quot;12 RUE DE RIVOLI&quot;</span> <span class="fu">},</span></span>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;suggestions&quot;</span><span class="fu">:</span> <span class="ot">[]</span><span class="fu">,</span></span>
+<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;carrierValidation&quot;</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">&quot;code&quot;</span><span class="fu">:</span> <span class="st">&quot;VALID&quot;</span><span class="fu">,</span> <span class="dt">&quot;message&quot;</span><span class="fu">:</span> <span class="st">&quot;Address is valid&quot;</span> <span class="fu">}</span></span>
+<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">}</span></span>
+<span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<h4 id="post-apiv1cargocarriers"><code>POST /api/v1/cargo/carriers</code></h4>
+<p>Add a carrier with credentials, services, and capabilities.</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="er">//</span> <span class="er">Request</span> <span class="er">(simplified</span> <span class="er">payload</span> <span class="er">—</span> <span class="er">see</span> <span class="er">service_cargo.md</span> <span class="er">for</span> <span class="er">full)</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;code&quot;</span><span class="fu">:</span> <span class="st">&quot;CHRONOPOST&quot;</span><span class="fu">,</span> <span class="dt">&quot;name&quot;</span><span class="fu">:</span> <span class="st">&quot;Chronopost&quot;</span><span class="fu">,</span> <span class="dt">&quot;adapterName&quot;</span><span class="fu">:</span> <span class="st">&quot;ChronopostAdapter&quot;</span><span class="fu">,</span></span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;active&quot;</span><span class="fu">:</span> <span class="kw">true</span><span class="fu">,</span> <span class="dt">&quot;website&quot;</span><span class="fu">:</span> <span class="st">&quot;https://www.chronopost.fr&quot;</span><span class="fu">,</span></span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;services&quot;</span><span class="fu">:</span> <span class="ot">[</span></span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>    <span class="fu">{</span> <span class="dt">&quot;code&quot;</span><span class="fu">:</span> <span class="st">&quot;CHRONO_13&quot;</span><span class="fu">,</span> <span class="dt">&quot;name&quot;</span><span class="fu">:</span> <span class="st">&quot;Chrono 13h&quot;</span><span class="fu">,</span> <span class="dt">&quot;zones&quot;</span><span class="fu">:</span> <span class="ot">[</span><span class="st">&quot;FR&quot;</span><span class="ot">,</span> <span class="st">&quot;MC&quot;</span><span class="ot">]</span><span class="fu">,</span> <span class="dt">&quot;transitDays&quot;</span><span class="fu">:</span> <span class="dv">1</span><span class="fu">,</span></span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;features&quot;</span><span class="fu">:</span> <span class="ot">[</span><span class="st">&quot;SIGNATURE&quot;</span><span class="ot">,</span> <span class="st">&quot;INSURANCE&quot;</span><span class="ot">]</span><span class="fu">,</span> <span class="dt">&quot;active&quot;</span><span class="fu">:</span> <span class="kw">true</span> <span class="fu">}</span></span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>  <span class="ot">]</span><span class="fu">,</span></span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;credentials&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;authType&quot;</span><span class="fu">:</span> <span class="st">&quot;API_KEY&quot;</span><span class="fu">,</span> <span class="dt">&quot;apiKey&quot;</span><span class="fu">:</span> <span class="st">&quot;chrono_api_key_12345&quot;</span><span class="fu">,</span></span>
+<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;accountNumber&quot;</span><span class="fu">:</span> <span class="st">&quot;CHRONO-ACC-001&quot;</span><span class="fu">,</span> <span class="dt">&quot;endpoint&quot;</span><span class="fu">:</span> <span class="st">&quot;https://api.chronopost.fr/v1&quot;</span></span>
+<span id="cb9-12"><a href="#cb9-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">},</span></span>
+<span id="cb9-13"><a href="#cb9-13" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;settings&quot;</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">&quot;timeoutMs&quot;</span><span class="fu">:</span> <span class="dv">15000</span><span class="fu">,</span> <span class="dt">&quot;retryMaxAttempts&quot;</span><span class="fu">:</span> <span class="dv">3</span><span class="fu">,</span> <span class="dt">&quot;rateLimitPerMinute&quot;</span><span class="fu">:</span> <span class="dv">60</span> <span class="fu">}</span></span>
+<span id="cb9-14"><a href="#cb9-14" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span>
+<span id="cb9-15"><a href="#cb9-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-16"><a href="#cb9-16" aria-hidden="true" tabindex="-1"></a><span class="er">//</span> <span class="er">Response</span> <span class="dv">201</span></span>
+<span id="cb9-17"><a href="#cb9-17" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb9-18"><a href="#cb9-18" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;success&quot;</span><span class="fu">:</span> <span class="kw">true</span><span class="fu">,</span></span>
+<span id="cb9-19"><a href="#cb9-19" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;data&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb9-20"><a href="#cb9-20" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;code&quot;</span><span class="fu">:</span> <span class="st">&quot;CHRONOPOST&quot;</span><span class="fu">,</span> <span class="dt">&quot;name&quot;</span><span class="fu">:</span> <span class="st">&quot;Chronopost&quot;</span><span class="fu">,</span> <span class="dt">&quot;active&quot;</span><span class="fu">:</span> <span class="kw">true</span><span class="fu">,</span></span>
+<span id="cb9-21"><a href="#cb9-21" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;status&quot;</span><span class="fu">:</span> <span class="st">&quot;PENDING_TEST&quot;</span><span class="fu">,</span> <span class="dt">&quot;message&quot;</span><span class="fu">:</span> <span class="st">&quot;Carrier added. Run a connection test before using.&quot;</span></span>
+<span id="cb9-22"><a href="#cb9-22" aria-hidden="true" tabindex="-1"></a>  <span class="fu">}</span></span>
+<span id="cb9-23"><a href="#cb9-23" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<h4 id="post-apiv1cargocarrierscodetest"><code>POST /api/v1/cargo/carriers/{code}/test</code></h4>
+<p>Test the carrier API connection.</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="er">//</span> <span class="er">Response</span> <span class="er">—</span> <span class="er">Success</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;success&quot;</span><span class="fu">:</span> <span class="kw">true</span><span class="fu">,</span></span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;data&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;status&quot;</span><span class="fu">:</span> <span class="st">&quot;CONNECTED&quot;</span><span class="fu">,</span> <span class="dt">&quot;latencyMs&quot;</span><span class="fu">:</span> <span class="dv">245</span><span class="fu">,</span> <span class="dt">&quot;testedAt&quot;</span><span class="fu">:</span> <span class="st">&quot;2026-06-11T15:00:00Z&quot;</span><span class="fu">,</span></span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;endpoint&quot;</span><span class="fu">:</span> <span class="st">&quot;https://api.chronopost.fr/v1/health&quot;</span><span class="fu">,</span></span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;details&quot;</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">&quot;httpStatus&quot;</span><span class="fu">:</span> <span class="dv">200</span><span class="fu">,</span> <span class="dt">&quot;message&quot;</span><span class="fu">:</span> <span class="st">&quot;API is reachable&quot;</span><span class="fu">,</span> <span class="dt">&quot;accountValid&quot;</span><span class="fu">:</span> <span class="kw">true</span> <span class="fu">}</span></span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">}</span></span>
+<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span>
+<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-11"><a href="#cb10-11" aria-hidden="true" tabindex="-1"></a><span class="er">//</span> <span class="er">Response</span> <span class="er">—</span> <span class="er">Failure</span></span>
+<span id="cb10-12"><a href="#cb10-12" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb10-13"><a href="#cb10-13" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;success&quot;</span><span class="fu">:</span> <span class="kw">false</span><span class="fu">,</span></span>
+<span id="cb10-14"><a href="#cb10-14" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;error&quot;</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">&quot;code&quot;</span><span class="fu">:</span> <span class="st">&quot;CARRIER_CONNECTION_FAILED&quot;</span><span class="fu">,</span> <span class="dt">&quot;message&quot;</span><span class="fu">:</span> <span class="st">&quot;Failed to connect to Chronopost API&quot;</span><span class="fu">,</span></span>
+<span id="cb10-15"><a href="#cb10-15" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;details&quot;</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">&quot;httpStatus&quot;</span><span class="fu">:</span> <span class="dv">401</span><span class="fu">,</span> <span class="dt">&quot;reason&quot;</span><span class="fu">:</span> <span class="st">&quot;Invalid API key&quot;</span> <span class="fu">}</span> <span class="fu">}</span></span>
+<span id="cb10-16"><a href="#cb10-16" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<h4 id="post-apiv1cargocarrierscodeservices"><code>POST /api/v1/cargo/carriers/{code}/services</code></h4>
+<p>Add a service to the carrier’s catalog.</p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="er">//</span> <span class="er">Request</span></span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;code&quot;</span><span class="fu">:</span> <span class="st">&quot;DHL_EXPRESS_9&quot;</span><span class="fu">,</span> <span class="dt">&quot;name&quot;</span><span class="fu">:</span> <span class="st">&quot;Express 9:00&quot;</span><span class="fu">,</span></span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;description&quot;</span><span class="fu">:</span> <span class="st">&quot;Delivery before 9am next day&quot;</span><span class="fu">,</span></span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;maxWeight&quot;</span><span class="fu">:</span> <span class="dv">30</span><span class="fu">,</span> <span class="dt">&quot;maxWeightUnit&quot;</span><span class="fu">:</span> <span class="st">&quot;KG&quot;</span><span class="fu">,</span></span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;zones&quot;</span><span class="fu">:</span> <span class="ot">[</span><span class="st">&quot;FR&quot;</span><span class="ot">,</span> <span class="st">&quot;DE&quot;</span><span class="ot">,</span> <span class="st">&quot;BE&quot;</span><span class="ot">,</span> <span class="st">&quot;NL&quot;</span><span class="ot">,</span> <span class="st">&quot;LU&quot;</span><span class="ot">]</span><span class="fu">,</span></span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;transitDays&quot;</span><span class="fu">:</span> <span class="dv">1</span><span class="fu">,</span> <span class="dt">&quot;features&quot;</span><span class="fu">:</span> <span class="ot">[</span><span class="st">&quot;SIGNATURE&quot;</span><span class="ot">,</span> <span class="st">&quot;INSURANCE&quot;</span><span class="ot">]</span><span class="fu">,</span> <span class="dt">&quot;active&quot;</span><span class="fu">:</span> <span class="kw">true</span></span>
+<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<hr />
+<h3 id="get-read-query">2.3 GET — Read / Query</h3>
+<h4 id="get-apiv1cargoshipments"><code>GET /api/v1/cargo/shipments</code></h4>
+<p>Paginated list of shipments. Filters:
+<code>?status=IN_TRANSIT&amp;page=1&amp;limit=20</code>.</p>
+<div class="sourceCode" id="cb12"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="er">//</span> <span class="er">Response</span></span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;success&quot;</span><span class="fu">:</span> <span class="kw">true</span><span class="fu">,</span></span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;data&quot;</span><span class="fu">:</span> <span class="ot">[</span></span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>    <span class="fu">{</span></span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;id&quot;</span><span class="fu">:</span> <span class="st">&quot;shp_a1b2c3d4e5&quot;</span><span class="fu">,</span> <span class="dt">&quot;status&quot;</span><span class="fu">:</span> <span class="st">&quot;IN_TRANSIT&quot;</span><span class="fu">,</span></span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;carrierCode&quot;</span><span class="fu">:</span> <span class="st">&quot;DHL&quot;</span><span class="fu">,</span> <span class="dt">&quot;carrierTrackingNumber&quot;</span><span class="fu">:</span> <span class="st">&quot;1234567890&quot;</span><span class="fu">,</span></span>
+<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;reference&quot;</span><span class="fu">:</span> <span class="st">&quot;ORD-2026-001234&quot;</span><span class="fu">,</span></span>
+<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;sender&quot;</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">&quot;company&quot;</span><span class="fu">:</span> <span class="st">&quot;TechCorp Inc&quot;</span><span class="fu">,</span> <span class="dt">&quot;country&quot;</span><span class="fu">:</span> <span class="st">&quot;FR&quot;</span> <span class="fu">},</span></span>
+<span id="cb12-10"><a href="#cb12-10" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;recipient&quot;</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">&quot;company&quot;</span><span class="fu">:</span> <span class="st">&quot;Berlin GmbH&quot;</span><span class="fu">,</span> <span class="dt">&quot;country&quot;</span><span class="fu">:</span> <span class="st">&quot;DE&quot;</span> <span class="fu">},</span></span>
+<span id="cb12-11"><a href="#cb12-11" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;price&quot;</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">&quot;total&quot;</span><span class="fu">:</span> <span class="fl">45.30</span><span class="fu">,</span> <span class="dt">&quot;currency&quot;</span><span class="fu">:</span> <span class="st">&quot;EUR&quot;</span> <span class="fu">},</span></span>
+<span id="cb12-12"><a href="#cb12-12" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;createdAt&quot;</span><span class="fu">:</span> <span class="st">&quot;2026-06-11T10:30:00Z&quot;</span></span>
+<span id="cb12-13"><a href="#cb12-13" aria-hidden="true" tabindex="-1"></a>    <span class="fu">}</span></span>
+<span id="cb12-14"><a href="#cb12-14" aria-hidden="true" tabindex="-1"></a>  <span class="ot">]</span><span class="fu">,</span></span>
+<span id="cb12-15"><a href="#cb12-15" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;pagination&quot;</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">&quot;page&quot;</span><span class="fu">:</span> <span class="dv">1</span><span class="fu">,</span> <span class="dt">&quot;limit&quot;</span><span class="fu">:</span> <span class="dv">20</span><span class="fu">,</span> <span class="dt">&quot;total&quot;</span><span class="fu">:</span> <span class="dv">5</span> <span class="fu">}</span></span>
+<span id="cb12-16"><a href="#cb12-16" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<h4 id="get-apiv1cargoshipmentsid"><code>GET /api/v1/cargo/shipments/{id}</code></h4>
+<p>Full shipment detail with status history.</p>
+<div class="sourceCode" id="cb13"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="er">//</span> <span class="er">Response</span></span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;success&quot;</span><span class="fu">:</span> <span class="kw">true</span><span class="fu">,</span></span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;data&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;id&quot;</span><span class="fu">:</span> <span class="st">&quot;shp_a1b2c3d4e5&quot;</span><span class="fu">,</span> <span class="dt">&quot;status&quot;</span><span class="fu">:</span> <span class="st">&quot;IN_TRANSIT&quot;</span><span class="fu">,</span></span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;statusHistory&quot;</span><span class="fu">:</span> <span class="ot">[</span></span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a>      <span class="fu">{</span> <span class="dt">&quot;status&quot;</span><span class="fu">:</span> <span class="st">&quot;CREATED&quot;</span><span class="fu">,</span> <span class="dt">&quot;timestamp&quot;</span><span class="fu">:</span> <span class="st">&quot;2026-06-11T10:30:00Z&quot;</span> <span class="fu">}</span><span class="ot">,</span></span>
+<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a>      <span class="fu">{</span> <span class="dt">&quot;status&quot;</span><span class="fu">:</span> <span class="st">&quot;PICKED_UP&quot;</span><span class="fu">,</span> <span class="dt">&quot;timestamp&quot;</span><span class="fu">:</span> <span class="st">&quot;2026-06-11T14:00:00Z&quot;</span> <span class="fu">}</span><span class="ot">,</span></span>
+<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a>      <span class="fu">{</span> <span class="dt">&quot;status&quot;</span><span class="fu">:</span> <span class="st">&quot;IN_TRANSIT&quot;</span><span class="fu">,</span> <span class="dt">&quot;timestamp&quot;</span><span class="fu">:</span> <span class="st">&quot;2026-06-12T08:15:00Z&quot;</span> <span class="fu">}</span></span>
+<span id="cb13-10"><a href="#cb13-10" aria-hidden="true" tabindex="-1"></a>    <span class="ot">]</span><span class="fu">,</span></span>
+<span id="cb13-11"><a href="#cb13-11" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;carrierCode&quot;</span><span class="fu">:</span> <span class="st">&quot;DHL&quot;</span><span class="fu">,</span> <span class="dt">&quot;carrierTrackingNumber&quot;</span><span class="fu">:</span> <span class="st">&quot;1234567890&quot;</span><span class="fu">,</span></span>
+<span id="cb13-12"><a href="#cb13-12" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;carrierShipmentId&quot;</span><span class="fu">:</span> <span class="st">&quot;DE-2026-98765&quot;</span><span class="fu">,</span></span>
+<span id="cb13-13"><a href="#cb13-13" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;reference&quot;</span><span class="fu">:</span> <span class="st">&quot;ORD-2026-001234&quot;</span><span class="fu">,</span></span>
+<span id="cb13-14"><a href="#cb13-14" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;labelUrl&quot;</span><span class="fu">:</span> <span class="st">&quot;https://api.dhl.com/labels/1234567890.pdf&quot;</span><span class="fu">,</span></span>
+<span id="cb13-15"><a href="#cb13-15" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;trackingUrl&quot;</span><span class="fu">:</span> <span class="st">&quot;https://www.dhl.com/track/1234567890&quot;</span><span class="fu">,</span></span>
+<span id="cb13-16"><a href="#cb13-16" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;sender&quot;</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">&quot;company&quot;</span><span class="fu">:</span> <span class="st">&quot;TechCorp Inc&quot;</span><span class="fu">,</span> <span class="dt">&quot;country&quot;</span><span class="fu">:</span> <span class="st">&quot;FR&quot;</span><span class="fu">,</span> <span class="dt">&quot;zipCode&quot;</span><span class="fu">:</span> <span class="st">&quot;75001&quot;</span> <span class="fu">},</span></span>
+<span id="cb13-17"><a href="#cb13-17" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;recipient&quot;</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">&quot;company&quot;</span><span class="fu">:</span> <span class="st">&quot;Berlin GmbH&quot;</span><span class="fu">,</span> <span class="dt">&quot;country&quot;</span><span class="fu">:</span> <span class="st">&quot;DE&quot;</span><span class="fu">,</span> <span class="dt">&quot;zipCode&quot;</span><span class="fu">:</span> <span class="st">&quot;10115&quot;</span> <span class="fu">},</span></span>
+<span id="cb13-18"><a href="#cb13-18" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;packages&quot;</span><span class="fu">:</span> <span class="ot">[</span><span class="fu">{</span> <span class="dt">&quot;reference&quot;</span><span class="fu">:</span> <span class="st">&quot;PARCEL-001&quot;</span><span class="fu">,</span> <span class="dt">&quot;weight&quot;</span><span class="fu">:</span> <span class="fl">2.5</span><span class="fu">,</span> <span class="dt">&quot;trackingNumber&quot;</span><span class="fu">:</span> <span class="st">&quot;1234567890-001&quot;</span> <span class="fu">}</span><span class="ot">]</span><span class="fu">,</span></span>
+<span id="cb13-19"><a href="#cb13-19" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;price&quot;</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">&quot;total&quot;</span><span class="fu">:</span> <span class="fl">45.30</span><span class="fu">,</span> <span class="dt">&quot;currency&quot;</span><span class="fu">:</span> <span class="st">&quot;EUR&quot;</span> <span class="fu">},</span></span>
+<span id="cb13-20"><a href="#cb13-20" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;createdAt&quot;</span><span class="fu">:</span> <span class="st">&quot;2026-06-11T10:30:00Z&quot;</span><span class="fu">,</span></span>
+<span id="cb13-21"><a href="#cb13-21" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;estimatedDeliveryDate&quot;</span><span class="fu">:</span> <span class="st">&quot;2026-06-13T18:00:00Z&quot;</span></span>
+<span id="cb13-22"><a href="#cb13-22" aria-hidden="true" tabindex="-1"></a>  <span class="fu">}</span></span>
+<span id="cb13-23"><a href="#cb13-23" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<h4 id="get-apiv1cargoshipmentsidtracking"><code>GET /api/v1/cargo/shipments/{id}/tracking</code></h4>
+<p>Tracking events with location, raw carrier status, and
+milestones.</p>
+<div class="sourceCode" id="cb14"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="er">//</span> <span class="er">Response</span></span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;success&quot;</span><span class="fu">:</span> <span class="kw">true</span><span class="fu">,</span></span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;data&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;shipmentId&quot;</span><span class="fu">:</span> <span class="st">&quot;shp_a1b2c3d4e5&quot;</span><span class="fu">,</span> <span class="dt">&quot;carrierCode&quot;</span><span class="fu">:</span> <span class="st">&quot;DHL&quot;</span><span class="fu">,</span></span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;carrierTrackingNumber&quot;</span><span class="fu">:</span> <span class="st">&quot;1234567890&quot;</span><span class="fu">,</span></span>
+<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;currentStatus&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;code&quot;</span><span class="fu">:</span> <span class="st">&quot;IN_TRANSIT&quot;</span><span class="fu">,</span> <span class="dt">&quot;label&quot;</span><span class="fu">:</span> <span class="st">&quot;In transit&quot;</span><span class="fu">,</span></span>
+<span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;location&quot;</span><span class="fu">:</span> <span class="st">&quot;Frankfurt, Germany&quot;</span><span class="fu">,</span> <span class="dt">&quot;timestamp&quot;</span><span class="fu">:</span> <span class="st">&quot;2026-06-12T08:15:00Z&quot;</span></span>
+<span id="cb14-10"><a href="#cb14-10" aria-hidden="true" tabindex="-1"></a>    <span class="fu">},</span></span>
+<span id="cb14-11"><a href="#cb14-11" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;estimatedDeliveryDate&quot;</span><span class="fu">:</span> <span class="st">&quot;2026-06-13T18:00:00Z&quot;</span><span class="fu">,</span></span>
+<span id="cb14-12"><a href="#cb14-12" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;events&quot;</span><span class="fu">:</span> <span class="ot">[</span></span>
+<span id="cb14-13"><a href="#cb14-13" aria-hidden="true" tabindex="-1"></a>      <span class="fu">{</span> <span class="dt">&quot;eventId&quot;</span><span class="fu">:</span> <span class="st">&quot;evt_001&quot;</span><span class="fu">,</span> <span class="dt">&quot;code&quot;</span><span class="fu">:</span> <span class="st">&quot;LABEL_CREATED&quot;</span><span class="fu">,</span> <span class="dt">&quot;label&quot;</span><span class="fu">:</span> <span class="st">&quot;Label created&quot;</span><span class="fu">,</span></span>
+<span id="cb14-14"><a href="#cb14-14" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;description&quot;</span><span class="fu">:</span> <span class="st">&quot;Shipping label generated&quot;</span><span class="fu">,</span></span>
+<span id="cb14-15"><a href="#cb14-15" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;location&quot;</span><span class="fu">:</span> <span class="st">&quot;Paris, France&quot;</span><span class="fu">,</span> <span class="dt">&quot;timestamp&quot;</span><span class="fu">:</span> <span class="st">&quot;2026-06-11T10:30:00Z&quot;</span><span class="fu">,</span></span>
+<span id="cb14-16"><a href="#cb14-16" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;carrierRawStatus&quot;</span><span class="fu">:</span> <span class="st">&quot;Shipment information received&quot;</span> <span class="fu">}</span><span class="ot">,</span></span>
+<span id="cb14-17"><a href="#cb14-17" aria-hidden="true" tabindex="-1"></a>      <span class="fu">{</span> <span class="dt">&quot;eventId&quot;</span><span class="fu">:</span> <span class="st">&quot;evt_002&quot;</span><span class="fu">,</span> <span class="dt">&quot;code&quot;</span><span class="fu">:</span> <span class="st">&quot;PICKED_UP&quot;</span><span class="fu">,</span> <span class="dt">&quot;label&quot;</span><span class="fu">:</span> <span class="st">&quot;Parcel collected&quot;</span><span class="fu">,</span></span>
+<span id="cb14-18"><a href="#cb14-18" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;location&quot;</span><span class="fu">:</span> <span class="st">&quot;Paris, France&quot;</span><span class="fu">,</span> <span class="dt">&quot;timestamp&quot;</span><span class="fu">:</span> <span class="st">&quot;2026-06-11T14:00:00Z&quot;</span><span class="fu">,</span></span>
+<span id="cb14-19"><a href="#cb14-19" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;carrierRawStatus&quot;</span><span class="fu">:</span> <span class="st">&quot;Pickup scanned&quot;</span> <span class="fu">}</span><span class="ot">,</span></span>
+<span id="cb14-20"><a href="#cb14-20" aria-hidden="true" tabindex="-1"></a>      <span class="fu">{</span> <span class="dt">&quot;eventId&quot;</span><span class="fu">:</span> <span class="st">&quot;evt_003&quot;</span><span class="fu">,</span> <span class="dt">&quot;code&quot;</span><span class="fu">:</span> <span class="st">&quot;IN_TRANSIT&quot;</span><span class="fu">,</span> <span class="dt">&quot;label&quot;</span><span class="fu">:</span> <span class="st">&quot;In transit&quot;</span><span class="fu">,</span></span>
+<span id="cb14-21"><a href="#cb14-21" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;location&quot;</span><span class="fu">:</span> <span class="st">&quot;Frankfurt, Germany&quot;</span><span class="fu">,</span> <span class="dt">&quot;timestamp&quot;</span><span class="fu">:</span> <span class="st">&quot;2026-06-12T08:15:00Z&quot;</span><span class="fu">,</span></span>
+<span id="cb14-22"><a href="#cb14-22" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;carrierRawStatus&quot;</span><span class="fu">:</span> <span class="st">&quot;Departed from transit hub&quot;</span> <span class="fu">}</span></span>
+<span id="cb14-23"><a href="#cb14-23" aria-hidden="true" tabindex="-1"></a>    <span class="ot">]</span><span class="fu">,</span></span>
+<span id="cb14-24"><a href="#cb14-24" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;milestones&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb14-25"><a href="#cb14-25" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;created&quot;</span><span class="fu">:</span> <span class="st">&quot;2026-06-11T10:30:00Z&quot;</span><span class="fu">,</span> <span class="dt">&quot;pickedUp&quot;</span><span class="fu">:</span> <span class="st">&quot;2026-06-11T14:00:00Z&quot;</span><span class="fu">,</span></span>
+<span id="cb14-26"><a href="#cb14-26" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;inTransit&quot;</span><span class="fu">:</span> <span class="st">&quot;2026-06-12T08:15:00Z&quot;</span><span class="fu">,</span></span>
+<span id="cb14-27"><a href="#cb14-27" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;outForDelivery&quot;</span><span class="fu">:</span> <span class="kw">null</span><span class="fu">,</span> <span class="dt">&quot;delivered&quot;</span><span class="fu">:</span> <span class="kw">null</span></span>
+<span id="cb14-28"><a href="#cb14-28" aria-hidden="true" tabindex="-1"></a>    <span class="fu">}</span></span>
+<span id="cb14-29"><a href="#cb14-29" aria-hidden="true" tabindex="-1"></a>  <span class="fu">}</span></span>
+<span id="cb14-30"><a href="#cb14-30" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<h4 id="get-apiv1cargocarriers"><code>GET /api/v1/cargo/carriers</code></h4>
+<p>Paginated carrier list. Filters:
+<code>?active=true&amp;zone=FR&amp;feature=INSURANCE&amp;page=1&amp;limit=20</code>.</p>
+<div class="sourceCode" id="cb15"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="er">//</span> <span class="er">Response</span></span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;success&quot;</span><span class="fu">:</span> <span class="kw">true</span><span class="fu">,</span></span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;data&quot;</span><span class="fu">:</span> <span class="ot">[</span></span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>    <span class="fu">{</span></span>
+<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;code&quot;</span><span class="fu">:</span> <span class="st">&quot;DHL&quot;</span><span class="fu">,</span> <span class="dt">&quot;name&quot;</span><span class="fu">:</span> <span class="st">&quot;DHL Express&quot;</span><span class="fu">,</span> <span class="dt">&quot;adapterName&quot;</span><span class="fu">:</span> <span class="st">&quot;DhlAdapter&quot;</span><span class="fu">,</span></span>
+<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;active&quot;</span><span class="fu">:</span> <span class="kw">true</span><span class="fu">,</span> <span class="dt">&quot;status&quot;</span><span class="fu">:</span> <span class="st">&quot;CONNECTED&quot;</span><span class="fu">,</span> <span class="dt">&quot;lastTestedAt&quot;</span><span class="fu">:</span> <span class="st">&quot;2026-06-10T08:00:00Z&quot;</span><span class="fu">,</span></span>
+<span id="cb15-8"><a href="#cb15-8" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;services&quot;</span><span class="fu">:</span> <span class="ot">[</span></span>
+<span id="cb15-9"><a href="#cb15-9" aria-hidden="true" tabindex="-1"></a>        <span class="fu">{</span> <span class="dt">&quot;code&quot;</span><span class="fu">:</span> <span class="st">&quot;DHL_EXPRESS_WORLDWIDE&quot;</span><span class="fu">,</span> <span class="dt">&quot;name&quot;</span><span class="fu">:</span> <span class="st">&quot;Express Worldwide&quot;</span><span class="fu">,</span> <span class="dt">&quot;active&quot;</span><span class="fu">:</span> <span class="kw">true</span> <span class="fu">}</span><span class="ot">,</span></span>
+<span id="cb15-10"><a href="#cb15-10" aria-hidden="true" tabindex="-1"></a>        <span class="fu">{</span> <span class="dt">&quot;code&quot;</span><span class="fu">:</span> <span class="st">&quot;DHL_EXPRESS_12&quot;</span><span class="fu">,</span> <span class="dt">&quot;name&quot;</span><span class="fu">:</span> <span class="st">&quot;Express 12:00&quot;</span><span class="fu">,</span> <span class="dt">&quot;active&quot;</span><span class="fu">:</span> <span class="kw">true</span> <span class="fu">}</span></span>
+<span id="cb15-11"><a href="#cb15-11" aria-hidden="true" tabindex="-1"></a>      <span class="ot">]</span><span class="fu">,</span></span>
+<span id="cb15-12"><a href="#cb15-12" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;capabilities&quot;</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">&quot;labelFormats&quot;</span><span class="fu">:</span> <span class="ot">[</span><span class="st">&quot;PDF&quot;</span><span class="ot">,</span> <span class="st">&quot;ZPL&quot;</span><span class="ot">,</span> <span class="st">&quot;PNG&quot;</span><span class="ot">]</span><span class="fu">,</span> <span class="dt">&quot;features&quot;</span><span class="fu">:</span> <span class="ot">[</span><span class="st">&quot;RATES&quot;</span><span class="ot">,</span> <span class="st">&quot;TRACKING&quot;</span><span class="ot">,</span> <span class="st">&quot;SIGNATURE&quot;</span><span class="ot">,</span> <span class="st">&quot;INSURANCE&quot;</span><span class="ot">,</span> <span class="st">&quot;SATURDAY&quot;</span><span class="ot">]</span> <span class="fu">}</span></span>
+<span id="cb15-13"><a href="#cb15-13" aria-hidden="true" tabindex="-1"></a>    <span class="fu">}</span></span>
+<span id="cb15-14"><a href="#cb15-14" aria-hidden="true" tabindex="-1"></a>  <span class="ot">]</span><span class="fu">,</span></span>
+<span id="cb15-15"><a href="#cb15-15" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;pagination&quot;</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">&quot;page&quot;</span><span class="fu">:</span> <span class="dv">1</span><span class="fu">,</span> <span class="dt">&quot;limit&quot;</span><span class="fu">:</span> <span class="dv">20</span><span class="fu">,</span> <span class="dt">&quot;total&quot;</span><span class="fu">:</span> <span class="dv">3</span> <span class="fu">}</span></span>
+<span id="cb15-16"><a href="#cb15-16" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<h4 id="get-apiv1cargocarrierscode"><code>GET /api/v1/cargo/carriers/{code}</code></h4>
+<p>Full carrier detail.</p>
+<div class="sourceCode" id="cb16"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="er">//</span> <span class="er">Response</span></span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;success&quot;</span><span class="fu">:</span> <span class="kw">true</span><span class="fu">,</span></span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;data&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;code&quot;</span><span class="fu">:</span> <span class="st">&quot;DHL&quot;</span><span class="fu">,</span> <span class="dt">&quot;name&quot;</span><span class="fu">:</span> <span class="st">&quot;DHL Express&quot;</span><span class="fu">,</span> <span class="dt">&quot;adapterName&quot;</span><span class="fu">:</span> <span class="st">&quot;DhlAdapter&quot;</span><span class="fu">,</span></span>
+<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;active&quot;</span><span class="fu">:</span> <span class="kw">true</span><span class="fu">,</span> <span class="dt">&quot;status&quot;</span><span class="fu">:</span> <span class="st">&quot;CONNECTED&quot;</span><span class="fu">,</span> <span class="dt">&quot;lastTestedAt&quot;</span><span class="fu">:</span> <span class="st">&quot;2026-06-10T08:00:00Z&quot;</span><span class="fu">,</span></span>
+<span id="cb16-7"><a href="#cb16-7" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;services&quot;</span><span class="fu">:</span> <span class="ot">[</span><span class="fu">{</span></span>
+<span id="cb16-8"><a href="#cb16-8" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;code&quot;</span><span class="fu">:</span> <span class="st">&quot;DHL_EXPRESS_WORLDWIDE&quot;</span><span class="fu">,</span> <span class="dt">&quot;name&quot;</span><span class="fu">:</span> <span class="st">&quot;Express Worldwide&quot;</span><span class="fu">,</span></span>
+<span id="cb16-9"><a href="#cb16-9" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;description&quot;</span><span class="fu">:</span> <span class="st">&quot;International express delivery&quot;</span><span class="fu">,</span></span>
+<span id="cb16-10"><a href="#cb16-10" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;maxWeight&quot;</span><span class="fu">:</span> <span class="dv">70</span><span class="fu">,</span> <span class="dt">&quot;zones&quot;</span><span class="fu">:</span> <span class="ot">[</span><span class="st">&quot;WORLDWIDE&quot;</span><span class="ot">]</span><span class="fu">,</span> <span class="dt">&quot;transitDays&quot;</span><span class="fu">:</span> <span class="dv">2</span><span class="fu">,</span></span>
+<span id="cb16-11"><a href="#cb16-11" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;features&quot;</span><span class="fu">:</span> <span class="ot">[</span><span class="st">&quot;SIGNATURE&quot;</span><span class="ot">,</span> <span class="st">&quot;INSURANCE&quot;</span><span class="ot">,</span> <span class="st">&quot;SATURDAY&quot;</span><span class="ot">]</span><span class="fu">,</span> <span class="dt">&quot;active&quot;</span><span class="fu">:</span> <span class="kw">true</span></span>
+<span id="cb16-12"><a href="#cb16-12" aria-hidden="true" tabindex="-1"></a>    <span class="fu">}</span><span class="ot">]</span><span class="fu">,</span></span>
+<span id="cb16-13"><a href="#cb16-13" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;capabilities&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb16-14"><a href="#cb16-14" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;labelFormats&quot;</span><span class="fu">:</span> <span class="ot">[</span><span class="st">&quot;PDF&quot;</span><span class="ot">,</span> <span class="st">&quot;ZPL&quot;</span><span class="ot">,</span> <span class="st">&quot;PNG&quot;</span><span class="ot">]</span><span class="fu">,</span></span>
+<span id="cb16-15"><a href="#cb16-15" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;features&quot;</span><span class="fu">:</span> <span class="ot">[</span><span class="st">&quot;RATES&quot;</span><span class="ot">,</span> <span class="st">&quot;TRACKING&quot;</span><span class="ot">,</span> <span class="st">&quot;SIGNATURE&quot;</span><span class="ot">,</span> <span class="st">&quot;INSURANCE&quot;</span><span class="ot">,</span> <span class="st">&quot;SATURDAY&quot;</span><span class="ot">,</span> <span class="st">&quot;PICKUP&quot;</span><span class="ot">]</span></span>
+<span id="cb16-16"><a href="#cb16-16" aria-hidden="true" tabindex="-1"></a>    <span class="fu">},</span></span>
+<span id="cb16-17"><a href="#cb16-17" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;settings&quot;</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">&quot;timeoutMs&quot;</span><span class="fu">:</span> <span class="dv">10000</span><span class="fu">,</span> <span class="dt">&quot;retryMaxAttempts&quot;</span><span class="fu">:</span> <span class="dv">3</span><span class="fu">,</span> <span class="dt">&quot;rateLimitPerMinute&quot;</span><span class="fu">:</span> <span class="dv">100</span><span class="fu">,</span> <span class="dt">&quot;webhookEnabled&quot;</span><span class="fu">:</span> <span class="kw">true</span> <span class="fu">}</span></span>
+<span id="cb16-18"><a href="#cb16-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">}</span></span>
+<span id="cb16-19"><a href="#cb16-19" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<hr />
+<h3 id="put-update">2.4 PUT — Update</h3>
+<h4 id="put-apiv1cargocarrierscode"><code>PUT /api/v1/cargo/carriers/{code}</code></h4>
+<p>Update carrier settings.</p>
+<div class="sourceCode" id="cb17"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="er">//</span> <span class="er">Request</span></span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span> <span class="dt">&quot;settings&quot;</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">&quot;timeoutMs&quot;</span><span class="fu">:</span> <span class="dv">15000</span><span class="fu">,</span> <span class="dt">&quot;retryMaxAttempts&quot;</span><span class="fu">:</span> <span class="dv">3</span> <span class="fu">},</span> <span class="dt">&quot;active&quot;</span><span class="fu">:</span> <span class="kw">true</span> <span class="fu">}</span></span></code></pre></div>
+<h4 id="put-apiv1cargocarrierscodecredentials"><code>PUT /api/v1/cargo/carriers/{code}/credentials</code></h4>
+<p>Update API keys and secrets. Re-test connection after update.</p>
+<div class="sourceCode" id="cb18"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="er">//</span> <span class="er">Request</span></span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;authType&quot;</span><span class="fu">:</span> <span class="st">&quot;API_KEY&quot;</span><span class="fu">,</span> <span class="dt">&quot;apiKey&quot;</span><span class="fu">:</span> <span class="st">&quot;new_dhl_api_key_67890&quot;</span><span class="fu">,</span></span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;apiSecret&quot;</span><span class="fu">:</span> <span class="st">&quot;new_dhl_secret_12345&quot;</span><span class="fu">,</span> <span class="dt">&quot;webhookSecret&quot;</span><span class="fu">:</span> <span class="st">&quot;whsec_new_abc456&quot;</span></span>
+<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span>
+<span id="cb18-6"><a href="#cb18-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-7"><a href="#cb18-7" aria-hidden="true" tabindex="-1"></a><span class="er">//</span> <span class="er">Response</span></span>
+<span id="cb18-8"><a href="#cb18-8" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb18-9"><a href="#cb18-9" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;success&quot;</span><span class="fu">:</span> <span class="kw">true</span><span class="fu">,</span></span>
+<span id="cb18-10"><a href="#cb18-10" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;data&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb18-11"><a href="#cb18-11" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;code&quot;</span><span class="fu">:</span> <span class="st">&quot;DHL&quot;</span><span class="fu">,</span> <span class="dt">&quot;credentialsUpdatedAt&quot;</span><span class="fu">:</span> <span class="st">&quot;2026-06-11T16:00:00Z&quot;</span><span class="fu">,</span></span>
+<span id="cb18-12"><a href="#cb18-12" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;message&quot;</span><span class="fu">:</span> <span class="st">&quot;Credentials updated. Re-test connection.&quot;</span></span>
+<span id="cb18-13"><a href="#cb18-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">}</span></span>
+<span id="cb18-14"><a href="#cb18-14" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<hr />
+<h3 id="patch-partial-update">2.5 PATCH — Partial Update</h3>
+<h4 id="patch-apiv1cargocarrierscodetoggle"><code>PATCH /api/v1/cargo/carriers/{code}/toggle</code></h4>
+<p>Enable or disable a carrier. Useful during outages or
+maintenance.</p>
+<div class="sourceCode" id="cb19"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="er">//</span> <span class="er">Request</span></span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span> <span class="dt">&quot;active&quot;</span><span class="fu">:</span> <span class="kw">false</span><span class="fu">,</span> <span class="dt">&quot;reason&quot;</span><span class="fu">:</span> <span class="st">&quot;API outage - maintenance&quot;</span> <span class="fu">}</span></span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a><span class="er">//</span> <span class="er">Response</span></span>
+<span id="cb19-5"><a href="#cb19-5" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb19-6"><a href="#cb19-6" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;success&quot;</span><span class="fu">:</span> <span class="kw">true</span><span class="fu">,</span></span>
+<span id="cb19-7"><a href="#cb19-7" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;data&quot;</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">&quot;code&quot;</span><span class="fu">:</span> <span class="st">&quot;FEDEX&quot;</span><span class="fu">,</span> <span class="dt">&quot;active&quot;</span><span class="fu">:</span> <span class="kw">false</span><span class="fu">,</span> <span class="dt">&quot;deactivatedAt&quot;</span><span class="fu">:</span> <span class="st">&quot;2026-06-11T14:00:00Z&quot;</span> <span class="fu">}</span></span>
+<span id="cb19-8"><a href="#cb19-8" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<hr />
+<h3 id="delete-deletion">2.6 DELETE — Deletion</h3>
+<h4 id="delete-apiv1cargoshipmentsid"><code>DELETE /api/v1/cargo/shipments/{id}</code></h4>
+<p>Permanently delete a shipment.</p>
+<div class="sourceCode" id="cb20"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="er">//</span> <span class="er">Response</span></span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span> <span class="dt">&quot;success&quot;</span><span class="fu">:</span> <span class="kw">true</span><span class="fu">,</span> <span class="dt">&quot;data&quot;</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">&quot;deleted&quot;</span><span class="fu">:</span> <span class="kw">true</span> <span class="fu">}</span> <span class="fu">}</span></span></code></pre></div>
+<h4 id="delete-apiv1cargocarrierscode"><code>DELETE /api/v1/cargo/carriers/{code}</code></h4>
+<p>Delete a carrier.</p>
+<div class="sourceCode" id="cb21"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="er">//</span> <span class="er">Response</span></span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span> <span class="dt">&quot;success&quot;</span><span class="fu">:</span> <span class="kw">true</span><span class="fu">,</span> <span class="dt">&quot;data&quot;</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">&quot;deleted&quot;</span><span class="fu">:</span> <span class="kw">true</span> <span class="fu">}</span> <span class="fu">}</span></span></code></pre></div>
+<hr />
+<h2 id="workflow">3. Workflow</h2>
+<h3 id="shipment-lifecycle">3.1 Shipment Lifecycle</h3>
+<pre><code>CREATED ──→ VALIDATED ──→ PICKED_UP ──→ IN_TRANSIT ──→ OUT_FOR_DELIVERY ──→ DELIVERED
+    │           │              │               │               │
+    │           │              │               │               ├── DELIVERY_ATTEMPTED
+    │           │              │               │               │       └── OUT_FOR_DELIVERY
+    │           │              │               ├── CUSTOMS_HELD
+    │           │              │               │       └── CUSTOMS_CLEARED → IN_TRANSIT
+    │           │              ├── FAILED ──────┘
+    │           ├── CANCELLED ─┘
+    └───────────┘</code></pre>
+<p><strong>7 unified statuses:</strong> CREATED → VALIDATED → PICKED_UP
+→ IN_TRANSIT → OUT_FOR_DELIVERY → DELIVERED (terminal: DELIVERED,
+FAILED, CANCELLED)</p>
+<h3 id="complete-workflow-10-steps">3.2 Complete Workflow (10
+steps)</h3>
+<pre><code> 1. POST /api/v1/cargo/carriers                    → Add Chronopost
+ 2. POST /api/v1/cargo/carriers/CHRONOPOST/test    → Test connection
+ 3. GET  /api/v1/cargo/carriers                    → List available carriers
+ 4. POST /api/v1/cargo/rates                       → Compare DHL / FedEx prices
+ 5. POST /api/v1/cargo/addresses/validate          → Validate recipient address
+ 6. POST /api/v1/cargo/shipments                   → Create shipment
+ 7. POST /api/v1/cargo/pickups                     → Schedule pickup
+ 8. ← DHL Webhook (DELIVERED)                      → Automatic status update
+ 9. GET  /api/v1/cargo/shipments/{id}/tracking     → Track in real time
+10. POST /api/v1/cargo/shipments/{id}/cancel       → Cancel if needed</code></pre>
+<h3 id="frontend-endpoint-mapping">3.3 Frontend ↔︎ Endpoint Mapping</h3>
+<pre><code>Login (Page)            → POST auth/login
+Rates (Page)            → POST cargo/rates
+Shipments (Page)        → GET cargo/shipments  |  POST cargo/shipments  |  DELETE cargo/shipments/{id}
+ShipmentDetail (Page)   → GET cargo/shipments/{id}  |  POST .../cancel  |  POST .../label  |  GET .../tracking
+Carriers (Page)         → GET cargo/carriers  |  POST cargo/carriers  |  DELETE cargo/carriers/{code}
+CarrierDetail (Page)    → GET cargo/carriers/{code}  |  PUT cargo/carriers/{code}
+                          PATCH .../toggle  |  POST .../test  |  POST .../services  |  PUT .../credentials
+Pickups (Page)          → POST cargo/pickups  |  POST cargo/pickups/{id}/cancel
+WebhookLogs (Page)      → POST cargo/webhooks/{carrierCode} (logs)
+Dashboard (Page)        → Aggregates stats from shipments + carriers</code></pre>
+<h3 id="data-models">3.4 Data Models</h3>
+<p><strong>Table <code>shipments</code></strong> (20 fields): id, status
+(8-value enum), carrier_code, carrier_tracking_number, reference,
+label_url, sender (JSON), recipient (JSON), packages (JSON[]), price
+(decimal), insurance_amount, estimated_delivery_date, dates…</p>
+<p><strong>Table <code>tracking_events</code></strong> (11 fields): id,
+shipment_id, code (12-value enum: LABEL_CREATED, PICKED_UP, IN_TRANSIT,
+ARRIVED_AT_HUB, DEPARTED_FROM_HUB, OUT_FOR_DELIVERY, DELIVERED,
+DELIVERY_ATTEMPTED, FAILED, RETURNED_TO_SENDER, CUSTOMS_HELD,
+CUSTOMS_CLEARED), location (JSON), carrier_raw_status, signed_by,
+delivery_photo_url…</p>
+<p><strong>Table <code>carriers</code></strong> (12 fields): code (PK),
+name, adapter_name, active, status (enum: PENDING_TEST, CONNECTED,
+DISCONNECTED, ERROR), capabilities (JSON), settings (JSON), credentials
+(encrypted JSON)…</p>
+<p><strong>Table <code>carrier_services</code></strong> (9 fields): id,
+carrier_code (FK), code, name, max_weight, zones (JSON[]), transit_days,
+features (JSON[]), active</p>
+<hr />
+<h2 id="knowledge-graph-analysis">4. Knowledge Graph Analysis</h2>
+<h3 id="statistics">4.1 Statistics</h3>
 <table>
 <thead>
 <tr>
@@ -218,442 +870,79 @@ edges</strong> organized into <strong>4 communities</strong>.</p>
 <td>5 (10.4%)</td>
 </tr>
 <tr>
-<td>Avg. confidence score</td>
+<td>Average confidence score</td>
 <td>0.949</td>
 </tr>
 </tbody>
 </table>
-<hr />
-<h2 id="community-map">Community Map</h2>
-<h3 id="community-0-architecture-carrier-adapters">Community 0 —
-Architecture &amp; Carrier Adapters</h3>
-<p><strong>Color:</strong> Blue (#3b82f6)<br />
-<strong>Nodes:</strong> 7</p>
-<p>The architectural backbone. A unified <code>CarrierAdapter</code>
-interface is implemented by 4 carrier-specific adapters (DHL, FedEx,
-UPS, Chronopost), each normalizing carrier-specific concepts into a
-shared <code>UnifiedStatusModel</code>. The
-<code>CARGO-SERVICE-ARCHITECTURE.md</code> document defines the full
-contract.</p>
-<ul>
-<li><strong>God Node:</strong> <code>cargo_service_arch</code> (degree:
-5) — references endpoint docs, defines carrier adapter, connects to all
-adapter nodes</li>
-<li><strong>Key Pattern:</strong> Pluggable adapter pattern — adding a
-new carrier requires only implementing the interface</li>
-</ul>
-<h3 id="community-1-status-mapping-engine">Community 1 — Status Mapping
-Engine</h3>
-<p><strong>Color:</strong> Green (#10b981)<br />
-<strong>Nodes:</strong> 6</p>
-<p>The most technically sophisticated component.
-<code>StatusMapperEngine</code> maintains per-carrier maps with 3-tier
-matching (exact string → regex patterns → fuzzy substring fallback). It
-detects terminal vs. blocking states, builds milestone timelines, and
-verifies lifecycle transitions.</p>
+<h3 id="community-map">4.2 Community Map</h3>
+<h4 id="community-0-architecture-adapters-7-nodes-blue">Community 0 —
+Architecture &amp; Adapters (7 nodes, blue)</h4>
+<p><code>CarrierAdapter</code> interface implemented by 4 adapters (DHL,
+FedEx, UPS, Chronopost). Each adapter normalizes carrier concepts into
+<code>UnifiedStatusModel</code>.</p>
+<h4 id="community-1-status-mapping-engine-6-nodes-green">Community 1 —
+Status Mapping Engine (6 nodes, green)</h4>
+<p><code>StatusMapperEngine</code> with 3-level per-carrier matching.
+64+ raw codes → 12 unified codes.</p>
 <table>
 <thead>
 <tr>
 <th>Carrier</th>
-<th>Codes Mapped</th>
-<th>Strategy Count</th>
+<th>Codes</th>
+<th>Exact</th>
+<th>Regex</th>
+<th>Fuzzy</th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td>DHL</td>
 <td>15</td>
-<td>Exact (8) + Regex (5) + Fuzzy (2)</td>
+<td>8</td>
+<td>5</td>
+<td>2</td>
 </tr>
 <tr>
 <td>FedEx</td>
 <td>16</td>
-<td>Exact (9) + Regex (5) + Fuzzy (2)</td>
+<td>9</td>
+<td>5</td>
+<td>2</td>
 </tr>
 <tr>
 <td>UPS</td>
 <td>18</td>
-<td>Exact (10) + Regex (6) + Fuzzy (2)</td>
+<td>10</td>
+<td>6</td>
+<td>2</td>
 </tr>
 <tr>
 <td>Chronopost</td>
 <td>15</td>
-<td>Exact (7) + Regex (5) + Fuzzy (3)</td>
-</tr>
-</tbody>
-</table>
-<ul>
-<li><strong>God Node:</strong> <code>status_mapper</code> (degree: 6) —
-central hub connecting to all carrier maps + milestone builder + unified
-status model</li>
-<li><strong>God Node:</strong> <code>unified_status</code> (degree: 5) —
-used by all 4 adapters and the mapper</li>
-</ul>
-<h3 id="community-2-frontend-application">Community 2 — Frontend
-Application</h3>
-<p><strong>Color:</strong> Yellow (#f59e0b)<br />
-<strong>Nodes:</strong> 21</p>
-<p>The largest community. A React 18 + TypeScript SPA built with Vite
-and Tailwind CSS, organized around a service-layer architecture.</p>
-<p><strong>Layer Architecture:</strong></p>
-<pre><code>Pages (dashboard, shipments, carriers, etc.)
-  → Shared Components (Sidebar, DataTable, Modal, etc.)
-    → React Hooks (useApi, useMutation)
-      → Cargo Service Layer (20+ API functions)
-        → Mock Data (6 entity stores)
-        → Status Mapper Engine</code></pre>
-<p><strong>Key Metrics:</strong> - 9 page components, all with full CRUD
-modals - 6+ shared/reusable components - 4 form components
-(ShipmentForm, CarrierForm, PickupForm, ServiceForm) - AuthGuard route
-protection wrapping all pages - 750+ i18n keys across 3 locales</p>
-<p><strong>God Nodes:</strong> - <code>react_frontend</code> (degree: 6)
-— root dependency hub - <code>cargo_service_layer</code> (degree: 9) —
-most highly connected node in the graph, used by every page -
-<code>auth_system</code> (degree: 3) — crosscuts both frontend and REST
-endpoint design</p>
-<h3 id="community-3-api-design-documentation">Community 3 — API Design
-&amp; Documentation</h3>
-<p><strong>Color:</strong> Purple (#8b5cf6)<br />
-<strong>Nodes:</strong> 7</p>
-<p>Documents the RESTful API contract covering 18 endpoints organized
-around 6 functional areas: - Shipment Lifecycle (7 states: draft →
-cancelled/delivered) - Carrier CRUD (add/edit/delete carriers) - Rate
-Engine (quote calculation) - Pickup Flow (schedule/cancel pickups) -
-Webhook Simulation (trigger/receive webhooks) - Address Validation</p>
-<p><strong>God Node:</strong> <code>rest_endpoints</code> (degree: 6) —
-documents all functional areas</p>
-<hr />
-<h2 id="endpoint-reference-18-endpoints">Endpoint Reference (18
-endpoints)</h2>
-<table style="width:100%;">
-<colgroup>
-<col style="width: 16%" />
-<col style="width: 16%" />
-<col style="width: 16%" />
-<col style="width: 16%" />
-<col style="width: 16%" />
-<col style="width: 16%" />
-</colgroup>
-<thead>
-<tr>
-<th>#</th>
-<th>Method</th>
-<th>Path</th>
-<th>Purpose</th>
-<th>Frontend Page</th>
-<th>Status</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>1</td>
-<td>POST</td>
-<td><code>/api/v1/cargo/auth/login</code></td>
-<td>Authenticate (mock JWT)</td>
-<td>Login</td>
-<td>✅</td>
-</tr>
-<tr>
-<td>2</td>
-<td>POST</td>
-<td><code>/api/v1/cargo/rates</code></td>
-<td>Get shipping rates</td>
-<td>Rates</td>
-<td>✅</td>
-</tr>
-<tr>
-<td>3</td>
-<td>POST</td>
-<td><code>/api/v1/cargo/shipments</code></td>
-<td>Create shipment</td>
-<td>Shipments</td>
-<td>✅</td>
-</tr>
-<tr>
-<td>4</td>
-<td>GET</td>
-<td><code>/api/v1/cargo/shipments/{id}</code></td>
-<td>Get shipment details</td>
-<td>ShipmentDetail</td>
-<td>✅</td>
-</tr>
-<tr>
-<td>5</td>
-<td>GET</td>
-<td><code>/api/v1/cargo/shipments/{id}/tracking</code></td>
-<td>Full tracking with events</td>
-<td>ShipmentDetail → Tracking</td>
-<td>✅</td>
-</tr>
-<tr>
-<td>6</td>
-<td>POST</td>
-<td><code>/api/v1/cargo/shipments/{id}/cancel</code></td>
-<td>Cancel shipment</td>
-<td>ShipmentDetail</td>
-<td>✅</td>
-</tr>
-<tr>
 <td>7</td>
-<td>POST</td>
-<td><code>/api/v1/cargo/shipments/{id}/label</code></td>
-<td>Generate label</td>
-<td>ShipmentDetail</td>
-<td>✅</td>
-</tr>
-<tr>
-<td>8</td>
-<td>POST</td>
-<td><code>/api/v1/cargo/pickups</code></td>
-<td>Schedule a pickup</td>
-<td>Pickups</td>
-<td>✅</td>
-</tr>
-<tr>
-<td>9</td>
-<td>POST</td>
-<td><code>/api/v1/cargo/webhooks/{carrierCode}</code></td>
-<td>Receive carrier push updates</td>
-<td>WebhookLogs</td>
-<td>✅</td>
-</tr>
-<tr>
-<td>10</td>
-<td>POST</td>
-<td><code>/api/v1/cargo/addresses/validate</code></td>
-<td>Validate &amp; normalize address</td>
-<td>Shipments form</td>
-<td>✅</td>
-</tr>
-<tr>
-<td>11</td>
-<td>POST</td>
-<td><code>/api/v1/cargo/carriers</code></td>
-<td>Add new carrier</td>
-<td>Carriers</td>
-<td>✅</td>
-</tr>
-<tr>
-<td>12</td>
-<td>GET</td>
-<td><code>/api/v1/cargo/carriers</code></td>
-<td>List all carriers</td>
-<td>Carriers</td>
-<td>✅</td>
-</tr>
-<tr>
-<td>13</td>
-<td>GET</td>
-<td><code>/api/v1/cargo/carriers/{code}</code></td>
-<td>Get carrier detail</td>
-<td>CarrierDetail</td>
-<td>✅</td>
-</tr>
-<tr>
-<td>14</td>
-<td>PUT</td>
-<td><code>/api/v1/cargo/carriers/{code}</code></td>
-<td>Update carrier settings</td>
-<td>CarrierDetail</td>
-<td>✅</td>
-</tr>
-<tr>
-<td>15</td>
-<td>PATCH</td>
-<td><code>/api/v1/cargo/carriers/{code}/toggle</code></td>
-<td>Enable/disable carrier</td>
-<td>CarrierDetail</td>
-<td>✅</td>
-</tr>
-<tr>
-<td>16</td>
-<td>POST</td>
-<td><code>/api/v1/cargo/carriers/{code}/test</code></td>
-<td>Test carrier API connection</td>
-<td>CarrierDetail</td>
-<td>✅</td>
-</tr>
-<tr>
-<td>17</td>
-<td>POST</td>
-<td><code>/api/v1/cargo/carriers/{code}/services</code></td>
-<td>Add a carrier service</td>
-<td>CarrierDetail</td>
-<td>✅</td>
-</tr>
-<tr>
-<td>18</td>
-<td>PUT</td>
-<td><code>/api/v1/cargo/carriers/{code}/credentials</code></td>
-<td>Update carrier API keys</td>
-<td>CarrierDetail</td>
-<td>✅</td>
+<td>5</td>
+<td>3</td>
 </tr>
 </tbody>
 </table>
-<h3 id="frontend-endpoint-mapping">Frontend ↔︎ Endpoint Mapping</h3>
-<pre><code>Login (Page)            → auth/login
-Rates (Page)            → cargo/rates
-Shipments (Page)        → cargo/shipments (CRUD list + create)
-ShipmentDetail (Page)   → cargo/shipments/{id} (get, cancel, label, tracking)
-Carriers (Page)         → cargo/carriers (list + add)
-CarrierDetail (Page)    → cargo/carriers/{code} (detail, edit, toggle, test, services, credentials)
-Pickups (Page)          → cargo/pickups (schedule, cancel)
-WebhookLogs (Page)      → cargo/webhooks/{carrierCode} (view logs)
-Dashboard (Page)        → aggregates data from shipments + carriers (stats)</code></pre>
-<h3 id="mock-service-functions-20-in-cargoservice.ts">Mock Service
-Functions (20+ in <code>cargoService.ts</code>)</h3>
-<table>
-<colgroup>
-<col style="width: 33%" />
-<col style="width: 33%" />
-<col style="width: 33%" />
-</colgroup>
-<thead>
-<tr>
-<th>Function</th>
-<th>Endpoint</th>
-<th>Type</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>login()</code></td>
-<td>POST auth/login</td>
-<td>Query</td>
-</tr>
-<tr>
-<td><code>getRates(req)</code></td>
-<td>POST cargo/rates</td>
-<td>Query</td>
-</tr>
-<tr>
-<td><code>getShipments()</code></td>
-<td>GET cargo/shipments</td>
-<td>List</td>
-</tr>
-<tr>
-<td><code>getShipmentById(id)</code></td>
-<td>GET cargo/shipments/{id}</td>
-<td>Detail</td>
-</tr>
-<tr>
-<td><code>createShipment(req)</code></td>
-<td>POST cargo/shipments</td>
-<td>Mutation</td>
-</tr>
-<tr>
-<td><code>deleteShipment(id)</code></td>
-<td>DELETE cargo/shipments/{id}</td>
-<td>Mutation</td>
-</tr>
-<tr>
-<td><code>updateShipment(id, data)</code></td>
-<td>PUT cargo/shipments/{id}</td>
-<td>Mutation</td>
-</tr>
-<tr>
-<td><code>cancelShipment(id)</code></td>
-<td>POST cargo/shipments/{id}/cancel</td>
-<td>Mutation</td>
-</tr>
-<tr>
-<td><code>getTrackingData(id)</code></td>
-<td>GET cargo/shipments/{id}/tracking</td>
-<td>Detail</td>
-</tr>
-<tr>
-<td><code>getCarriers()</code></td>
-<td>GET cargo/carriers</td>
-<td>List</td>
-</tr>
-<tr>
-<td><code>getCarrierByCode(code)</code></td>
-<td>GET cargo/carriers/{code}</td>
-<td>Detail</td>
-</tr>
-<tr>
-<td><code>addCarrier(data)</code></td>
-<td>POST cargo/carriers</td>
-<td>Mutation</td>
-</tr>
-<tr>
-<td><code>updateCarrier(code, data)</code></td>
-<td>PUT cargo/carriers/{code}</td>
-<td>Mutation</td>
-</tr>
-<tr>
-<td><code>deleteCarrier(code)</code></td>
-<td>DELETE cargo/carriers/{code}</td>
-<td>Mutation</td>
-</tr>
-<tr>
-<td><code>toggleCarrier(code, active)</code></td>
-<td>PATCH cargo/carriers/{code}/toggle</td>
-<td>Mutation</td>
-</tr>
-<tr>
-<td><code>testCarrierConnection(code)</code></td>
-<td>POST cargo/carriers/{code}/test</td>
-<td>Query</td>
-</tr>
-<tr>
-<td><code>addCarrierService(code, data)</code></td>
-<td>POST cargo/carriers/{code}/services</td>
-<td>Mutation</td>
-</tr>
-<tr>
-<td><code>deleteCarrierService(code, svcCode)</code></td>
-<td>DELETE cargo/carriers/{code}/services/{svcCode}</td>
-<td>Mutation</td>
-</tr>
-<tr>
-<td><code>updateCarrierCredentials(code, data)</code></td>
-<td>PUT cargo/carriers/{code}/credentials</td>
-<td>Mutation</td>
-</tr>
-<tr>
-<td><code>getPickups()</code></td>
-<td>GET cargo/pickups</td>
-<td>List</td>
-</tr>
-<tr>
-<td><code>schedulePickup(data)</code></td>
-<td>POST cargo/pickups</td>
-<td>Mutation</td>
-</tr>
-<tr>
-<td><code>cancelPickup(id)</code></td>
-<td>POST cargo/pickups/{id}/cancel</td>
-<td>Mutation</td>
-</tr>
-<tr>
-<td><code>getWebhookLogs()</code></td>
-<td>GET cargo/webhooks/logs</td>
-<td>List</td>
-</tr>
-<tr>
-<td><code>validateAddress(req)</code></td>
-<td>POST cargo/addresses/validate</td>
-<td>Query</td>
-</tr>
-<tr>
-<td><code>getDashboardStats()</code></td>
-<td>GET cargo/stats/dashboard</td>
-<td>Detail</td>
-</tr>
-</tbody>
-</table>
-<hr />
-<h2 id="god-nodes-high-connectivity-hubs">God Nodes (High-Connectivity
-Hubs)</h2>
+<h4 id="community-2-frontend-21-nodes-yellow">Community 2 — Frontend (21
+nodes, yellow)</h4>
+<p>React 18 + TypeScript + Vite + Tailwind. Layered architecture: Pages
+→ Components → Hooks → Service Layer → Mock Data.</p>
+<h4 id="community-3-api-design-documentation-7-nodes-purple">Community 3
+— API Design &amp; Documentation (7 nodes, purple)</h4>
+<p>20 endpoints covering 6 domains: shipments, carriers, rates, pickups,
+webhooks, address validation.</p>
+<h3 id="god-nodes-high-connectivity-hubs">4.3 God Nodes
+(High-Connectivity Hubs)</h3>
 <table>
 <thead>
 <tr>
 <th>Node</th>
 <th>Community</th>
 <th>Degree</th>
-<th>File Type</th>
+<th>Type</th>
 </tr>
 </thead>
 <tbody>
@@ -664,20 +953,8 @@ Hubs)</h2>
 <td>code</td>
 </tr>
 <tr>
-<td>cargo_service_arch</td>
-<td>Architecture</td>
-<td>5</td>
-<td>document</td>
-</tr>
-<tr>
-<td>unified_status</td>
-<td>Architecture</td>
-<td>5</td>
-<td>code</td>
-</tr>
-<tr>
 <td>status_mapper</td>
-<td>Status Mapping</td>
+<td>Mapping</td>
 <td>6</td>
 <td>code</td>
 </tr>
@@ -694,6 +971,18 @@ Hubs)</h2>
 <td>document</td>
 </tr>
 <tr>
+<td>cargo_service_arch</td>
+<td>Architecture</td>
+<td>5</td>
+<td>document</td>
+</tr>
+<tr>
+<td>unified_status</td>
+<td>Architecture</td>
+<td>5</td>
+<td>code</td>
+</tr>
+<tr>
 <td>shared_components</td>
 <td>Frontend</td>
 <td>5</td>
@@ -701,84 +990,32 @@ Hubs)</h2>
 </tr>
 </tbody>
 </table>
-<p>The <strong><code>cargo_service_layer</code></strong> is the single
-most critical node — every page depends on it. The
-<strong><code>status_mapper</code></strong> is the most technically
-complex.</p>
-<hr />
-<h2 id="edge-analysis">Edge Analysis</h2>
-<h3 id="strongest-relations-extracted-confidence-1.0">Strongest
-Relations (EXTRACTED, confidence = 1.0)</h3>
-<p>43 edges are directly extracted from the codebase (89.6%). These
-include: - <code>depends_on</code> — frontend layer hierarchy -
-<code>contains</code> — mapper → maps, arch → adapter -
-<code>implements</code> — adapter interface → carrier implementations -
-<code>uses</code> — pages → service layer, forms → pages -
-<code>part_of</code> — components → frontend framework -
-<code>maps_to</code> — status mapper → unified status model</p>
-<h3 id="inferred-relations-confidence-1.0">Inferred Relations
-(confidence &lt; 1.0)</h3>
-<p>5 edges are semantically inferred (10.4%): - <code>complements</code>
-— status_mapper ↔︎ carrier_adapter (0.85) - <code>crosscuts</code> —
-i18n_system → react_frontend (0.95) - <code>links_to</code> — dashboard
-→ shipments (0.95), shipments → tracking (1.0) -
-<code>competes_with</code> — DHL ↔︎ FedEx (0.85), UPS ↔︎ Chronopost (0.75)
-- <code>required_by</code> — auth_system → endpoints (0.85)</p>
-<hr />
-<h2 id="orphan-overlap-analysis">Orphan &amp; Overlap Analysis</h2>
-<p><strong>Orphans:</strong> 0 — all nodes have at least 1 edge.<br />
-<strong>Overlaps:</strong> The <code>auth_system</code> node bridges
-Community 2 (Frontend) and Community 3 (API Design), as authentication
-crosscuts both frontend routing and backend endpoint security.</p>
-<hr />
-<h2 id="key-architectural-insights">Key Architectural Insights</h2>
+<p><code>cargo_service_layer</code> is the most critical node — every
+page depends on it.</p>
+<h3 id="edge-analysis">4.4 Edge Analysis</h3>
+<p><strong>EXTRACTED (confidence 1.0)</strong>: <code>depends_on</code>,
+<code>contains</code>, <code>implements</code>, <code>uses</code>,
+<code>part_of</code>, <code>maps_to</code></p>
+<p><strong>INFERRED (confidence &lt; 1.0)</strong>:
+<code>complements</code> (status_mapper ↔︎ carrier_adapter, 0.85),
+<code>crosscuts</code> (i18n → frontend, 0.95), <code>links_to</code>
+(dashboard → shipments, 0.95), <code>competes_with</code> (DHL ↔︎ FedEx,
+0.85)</p>
+<h3 id="architectural-insights">4.5 Architectural Insights</h3>
 <ol type="1">
-<li><p><strong>Pluggable Carrier Architecture</strong> — Adding a 5th
-carrier requires: (a) implement adapter interface, (b) add status map
-entries, (c) add mock data rows. No changes to existing code.</p></li>
-<li><p><strong>Status Mapping is the Core Differentiator</strong> —
-3-tier matching with regex means the system handles real-world carrier
-status variations (typos, locale differences, formatting). Turkish
-carrier status names are supported via regex patterns.</p></li>
-<li><p><strong>Service Layer as God Node</strong> — The single
-<code>cargoService.ts</code> module is the bottleneck. Consider
-splitting into domain-specific services (shipmentService.ts,
-carrierService.ts, etc.) for better maintainability.</p></li>
-<li><p><strong>Frontend Outweighs Backend</strong> — 21 of 40 nodes
-(52.5%) are frontend-related. The “backend” is currently mock data, but
-the architecture is ready for real API integration by swapping
-<code>cargoService.ts</code> implementations.</p></li>
-<li><p><strong>Documentation is Centralized</strong> — 3 service
-documentation files (EN, FR, color-coded) cover the same API spec,
-creating potential sync drift. Consider auto-generating from a single
-source.</p></li>
+<li><strong>Modular architecture</strong> — Adding a 5th carrier =
+implement interface + add status maps</li>
+<li><strong>Status Mapping = key differentiator</strong> — Turkish
+carrier status names supported via regex</li>
+<li><strong>Service Layer = bottleneck</strong> — Consider splitting
+into domain services (shipmentService, carrierService…)</li>
+<li><strong>Frontend 52.5% of codebase</strong> — Ready for real API by
+swapping <code>cargoService.ts</code></li>
+<li><strong>3 documentation files</strong> — Drift risk. Auto-generation
+recommended</li>
 </ol>
 <hr />
-<h2 id="community-cross-reference">Community Cross-Reference</h2>
-<pre><code>                    ┌──────────────────────┐
-                    │   Architecture        │
-                    │   (Community 0)       │
-                    └──────────┬───────────┘
-                               │ defines
-                               ▼
-                    ┌──────────────────────┐
-          ┌────────►│   Status Mapping     │◄────────┐
-          │         │   (Community 1)       │         │
-          │         └──────────┬───────────┘         │
-          │                    │ maps_to              │
-          │                    ▼                     │
-          │         ┌──────────────────────┐         │
-          │         │   Frontend App       │         │
-          ├────────►│   (Community 2)      │◄────────┤
-          │         └──────────┬───────────┘         │
-          │                    │ documentation        │
-          │                    ▼                     │
-          │         ┌──────────────────────┐         │
-          └────────►│   API Design         │─────────┘
-                    │   (Community 3)      │
-                    └──────────────────────┘</code></pre>
-<hr />
-<h2 id="file-details">File Details</h2>
+<h2 id="project-files">5. Project Files</h2>
 <h3 id="core-documents">Core Documents</h3>
 <table>
 <thead>
@@ -794,11 +1031,11 @@ source.</p></li>
 </tr>
 <tr>
 <td><code>service_cargo.md</code></td>
-<td>API endpoint docs (French)</td>
+<td>API documentation (FR)</td>
 </tr>
 <tr>
 <td><code>cargo_service.md</code></td>
-<td>API endpoint docs (English)</td>
+<td>API documentation (EN)</td>
 </tr>
 <tr>
 <td><code>cargo_service_api.md</code></td>
@@ -814,7 +1051,7 @@ source.</p></li>
 </colgroup>
 <thead>
 <tr>
-<th>File/Dir</th>
+<th>File/Directory</th>
 <th>Purpose</th>
 </tr>
 </thead>
@@ -825,7 +1062,7 @@ source.</p></li>
 </tr>
 <tr>
 <td><code>frontend/src/data/mockData.ts</code></td>
-<td>6 entity mock stores</td>
+<td>6 mock stores</td>
 </tr>
 <tr>
 <td><code>frontend/src/services/statusMapper.ts</code></td>
@@ -833,35 +1070,31 @@ source.</p></li>
 </tr>
 <tr>
 <td><code>frontend/src/services/cargoService.ts</code></td>
-<td>20+ mock API functions</td>
+<td>25+ mock API functions</td>
 </tr>
 <tr>
 <td><code>frontend/src/hooks/useCargoService.ts</code></td>
-<td>useApi, useApiById, useMutation, useLoading</td>
+<td>useApi, useMutation, useLoading</td>
 </tr>
 <tr>
 <td><code>frontend/src/context/AuthContext.tsx</code></td>
-<td>JWT mock auth state</td>
+<td>JWT mock auth</td>
 </tr>
 <tr>
 <td><code>frontend/src/i18n/</code></td>
-<td>EN/FR/TR translation system</td>
+<td>EN/FR/TR (750+ keys)</td>
 </tr>
 <tr>
 <td><code>frontend/src/pages/</code></td>
-<td>9 page components</td>
+<td>9 pages</td>
 </tr>
 <tr>
 <td><code>frontend/src/components/</code></td>
 <td>10+ shared components</td>
 </tr>
-<tr>
-<td><code>frontend/src/components/forms/</code></td>
-<td>4 form components</td>
-</tr>
 </tbody>
 </table>
 <hr />
-<p><em>Report generated by Graphify knowledge graph pipeline.</em></p>
+<p><em>Report generated by Graphify — knowledge graph pipeline.</em></p>
 </body>
 </html>
