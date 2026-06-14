@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Graphify — Cargo Delivery Service Knowledge Graph</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:system-ui,-apple-system,sans-serif;background:#0f172a;color:#e2e8f0;overflow:hidden}
+header{background:#1e293b;padding:12px 24px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #334155}
+h1{font-size:18px;font-weight:600;color:#f1f5f9}
+#legend{display:flex;gap:16px}
+.legend-item{display:flex;align-items:center;gap:6px;font-size:12px;color:#94a3b8}
+.legend-dot{width:12px;height:12px;border-radius:50%;border:2px solid rgba(255,255,255,0.15)}
+#container{width:100vw;height:calc(100vh - 50px);position:relative}
+svg{width:100%;height:100%;cursor:grab}
+svg:active{cursor:grabbing}
+.node circle{stroke:#fff;stroke-width:1.5;cursor:pointer;transition:r 0.15s}
+.node circle:hover{stroke:#facc15;stroke-width:2.5}
+.node text{font-size:11px;fill:#cbd5e1;pointer-events:none;text-anchor:middle;dominant-baseline:central}
+.link{stroke-opacity:0.35;fill:none}
+.edge-label{font-size:9px;fill:#64748b;text-anchor:middle;pointer-events:none}
+.tooltip{position:absolute;background:#1e293b;border:1px solid #334155;border-radius:8px;padding:12px 16px;font-size:13px;max-width:280px;pointer-events:none;opacity:0;transition:opacity 0.2s;box-shadow:0 8px 24px rgba(0,0,0,0.4)}
+.tooltip.visible{opacity:1}
+.tooltip h3{font-size:14px;margin-bottom:4px;color:#f1f5f9}
+.tooltip .meta{color:#94a3b8;font-size:11px;margin-bottom:6px}
+.tooltip .rels{color:#64748b;font-size:11px;margin-top:4px}
+.stats{position:absolute;bottom:16px;right:16px;background:#1e293b;border:1px solid #334155;border-radius:8px;padding:10px 14px;font-size:11px;color:#94a3b8}
+.stats span{color:#e2e8f0;font-weight:600}
+.controls{position:absolute;bottom:16px;left:16px;display:flex;gap:8px}
+.controls button{background:#1e293b;border:1px solid #334155;color:#94a3b8;padding:8px 14px;border-radius:6px;cursor:pointer;font-size:12px;transition:all 0.15s}
+.controls button:hover{background:#334155;color:#e2e8f0;border-color:#475569}
+.community-toggle{position:absolute;top:70px;right:16px;background:#1e293b;border:1px solid #334155;border-radius:8px;padding:8px 12px;display:flex;flex-direction:column;gap:6px}
+.community-toggle label{font-size:11px;display:flex;align-items:center;gap:6px;cursor:pointer;color:#94a3b8}
+.community-toggle input[type="checkbox"]{accent-color:#3b82f6}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Graphify — Cargo Delivery Service</h1>
+  <div id="legend"></div>
+</header>
+
+<div id="container">
+  <svg id="graph"></svg>
+  <div class="tooltip" id="tooltip"></div>
+  <div class="stats" id="stats"></div>
+  <div class="community-toggle" id="communityToggle"></div>
+  <div class="controls">
+    <button onclick="resetZoom()">Reset</button>
+    <button onclick="toggleLabels()">Labels</button>
+  </div>
+</div>
+
+<script src="https://d3js.org/d3.v7.min.js"></script>
+<script>
+const GRAPH_URL = 'graph.json';
+let graphData, simulation, svg, gLink, gNode, currentScale = 1, labelsVisible = true;
+
+async function loadGraph() {
+  const res = await fetch(GRAPH_URL);
+  graphData = await res.json();
+  init();
+}
+
+function getCommunityColor(id) {
+  const c = graphData.communities[id || 0];
+  return c ? c.color : '#64748b';
+}
+
+function init() {
+  const width = window.innerWidth;
+  const height = window.innerHeight - 50;
+
+  const communities = graphData.communities || {};
+  const nodes = graphData.nodes.map(n => ({
+    ...n,
+    communityColor: getCommunityColor(n.group),
+    r: (n.val || 1) * 6
+  }));
+  const edges = graphData.edges.map(e => ({
+    source: typeof e.source === 'string' ? e.source : e.source.id,
+    target: typeof e.target === 'string' ? e.target : e.target.id,
+    relation: e.relation,
+    confidence: e.confidence,
+    confidenceScore: e.confidenceScore || 1
+  }));
+
+  // Build legend
+  const legendEl = document.getElementById('legend');
+  Object.values(communities).forEach(c => {
+    const item = document.createElement('div');
+    item.className = 'legend-item';
+    item.innerHTML = `<span class="legend-dot" style="background:${c.color}"></span>${c.label}`;
+    legendEl.appendChild(item);
+  });
+
+  // Stats
+  const statsEl = document.getElementById('stats');
+  statsEl.innerHTML = `Nodes: <span>${nodes.length}</span> &middot; Edges: <span>${edges.length}</span> &middot; Communities: <span>${Object.keys(communities).length}</span>`;
+
+  // Community toggle
+  const toggleEl = document.getElementById('communityToggle');
+  Object.values(communities).forEach(c => {
+    const label = document.createElement('label');
+    const cb = document.createElement('input');
+    cb.type = 'checkbox';
+    cb.checked = true;
+    cb.dataset.community = c.label;
+    cb.onchange = () => toggleCommunity(c.label, cb.checked);
+    label.appendChild(cb);
+    label.appendChild(document.createTextNode(c.label));
+    toggleEl.appendChild(label);
+  });
+
+  svg = d3.select('#graph');
+  const g = svg.append('g');
+  gLink = g.append('g').attr('class', 'links');
+  gNode = g.append('g').attr('class', 'nodes');
+
+  // Zoom
+  const zoom = d3.zoom().scaleExtent([0.2, 4]).on('zoom', (event) => {
+    g.attr('transform', event.transform);
+    currentScale = event.transform.k;
+  });
+  svg.call(zoom);
+
+  simulation = d3.forceSimulation(nodes)
+    .force('link', d3.forceLink(edges).id(d => d.id).distance(80).strength(0.5))
+    .force('charge', d3.forceManyBody().strength(-300))
+    .force('center', d3.forceCenter(width / 2, height / 2))
+    .force('collision', d3.forceCollide().radius(d => d.r + 10));
+
+  // Links
+  const link = gLink.selectAll('line').data(edges).join('line')
+    .attr('class', 'link')
+    .attr('stroke', '#475569')
+    .attr('stroke-width', d => Math.max(1, d.confidenceScore * 2.5))
+    .attr('stroke-dasharray', d => d.confidence === 'INFERRED' ? '4,3' : 'none');
+
+  // Edge labels
+  const edgeLabel = gLink.selectAll('text').data(edges).join('text')
+    .attr('class', 'edge-label')
+    .text(d => d.relation);
+
+  // Nodes
+  const node = gNode.selectAll('g').data(nodes).join('g')
+    .attr('class', 'node')
+    .call(d3.drag()
+      .on('start', dragStarted)
+      .on('drag', dragged)
+      .on('end', dragEnded));
+
+  node.append('circle')
+    .attr('r', d => d.r)
+    .attr('fill', d => d.communityColor)
+    .attr('opacity', 0.85);
+
+  node.append('text')
+    .text(d => d.label)
+    .attr('font-size', d => Math.max(9, d.r * 1.4))
+    .attr('dx', d => d.r + 8)
+    .attr('text-anchor', 'start');
+
+  // Tooltip
+  const tooltip = document.getElementById('tooltip');
+
+  node.on('mouseenter', (event, d) => {
+    const connected = edges.filter(e => e.source.id === d.id || e.target.id === d.id);
+    tooltip.innerHTML = `
+      <h3>${d.label}</h3>
+      <div class="meta">${d.id} · ${d.fileType || 'unknown'}</div>
+      <div>Connections: ${connected.length}</div>
+      <div class="rels">
+        ${connected.slice(0, 8).map(e => {
+          const other = e.source.id === d.id ? e.target : e.source;
+          const direction = e.source.id === d.id ? '→' : '←';
+          return `<div>${direction} ${other.label} <em style="color:#64748b">(${e.relation})</em></div>`;
+        }).join('')}
+        ${connected.length > 8 ? `<div style="color:#64748b;margin-top:2px">... +${connected.length - 8} more</div>` : ''}
+      </div>
+    `;
+    tooltip.className = 'tooltip visible';
+  });
+
+  node.on('mousemove', (event) => {
+    const x = event.pageX + 14;
+    const y = event.pageY - 10;
+    tooltip.style.left = Math.min(x, window.innerWidth - 290) + 'px';
+    tooltip.style.top = Math.min(y, window.innerHeight - 200) + 'px';
+  });
+
+  node.on('mouseleave', () => {
+    tooltip.className = 'tooltip';
+  });
+
+  simulation.on('tick', () => {
+    link
+      .attr('x1', d => d.source.x)
+      .attr('y1', d => d.source.y)
+      .attr('x2', d => d.target.x)
+      .attr('y2', d => d.target.y);
+    edgeLabel
+      .attr('x', d => (d.source.x + d.target.x) / 2)
+      .attr('y', d => (d.source.y + d.target.y) / 2);
+    node.attr('transform', d => `translate(${d.x},${d.y})`);
+  });
+
+  window.sim = simulation;
+  window.nodeEl = node;
+  window.linkEl = link;
+  window.edgeLabelEl = edgeLabel;
+  window.nodesData = nodes;
+}
+
+function toggleCommunity(label, show) {
+  const community = Object.values(window.sim.nodes()).find(n => {
+    const c = Object.entries(graphData.communities).find(([k, v]) => v.label === label);
+    return c && n.group.toString() === c[0];
+  });
+  if (!community) return;
+  graphData.nodes.forEach(n => {
+    const c = Object.entries(graphData.communities).find(([k, v]) => v.label === label);
+    if (n.group.toString() === c[0]) {
+      n.hidden = !show;
+    }
+  });
+  const filtered = graphData.nodes.filter(n => !n.hidden);
+  window.nodeEl.attr('display', d => d.hidden ? 'none' : null);
+  window.linkEl.attr('display', d => (d.source.hidden || d.target.hidden) ? 'none' : null);
+  window.edgeLabelEl.attr('display', d => (d.source.hidden || d.target.hidden) ? 'none' : null);
+}
+
+function resetZoom() {
+  svg.transition().duration(500).call(d3.zoom().transform, d3.zoomIdentity);
+}
+
+function toggleLabels() {
+  labelsVisible = !labelsVisible;
+  window.nodeEl.selectAll('text').attr('display', labelsVisible ? null : 'none');
+}
+
+function dragStarted(event, d) {
+  if (!event.active) simulation.alphaTarget(0.3).restart();
+  d.fx = d.x;
+  d.fy = d.y;
+}
+
+function dragged(event, d) {
+  d.fx = event.x;
+  d.fy = event.y;
+}
+
+function dragEnded(event, d) {
+  if (!event.active) simulation.alphaTarget(0);
+  d.fx = null;
+  d.fy = null;
+}
+
+loadGraph();
+window.addEventListener('resize', () => {
+  // Update center on resize
+});
+</script>
+</body>
+</html>

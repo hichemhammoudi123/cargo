@@ -1,0 +1,867 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>GRAPH_REPORT</title>
+  <style>
+
+html {
+color: #1a1a1a;
+background-color: #fdfdfd;
+}
+body {
+margin: 0 auto;
+max-width: 36em;
+padding-left: 50px;
+padding-right: 50px;
+padding-top: 50px;
+padding-bottom: 50px;
+hyphens: auto;
+overflow-wrap: break-word;
+text-rendering: optimizeLegibility;
+font-kerning: normal;
+}
+@media (max-width: 600px) {
+body {
+font-size: 0.9em;
+padding: 12px;
+}
+h1 {
+font-size: 1.8em;
+}
+}
+@media print {
+html {
+background-color: white;
+}
+body {
+background-color: transparent;
+color: black;
+font-size: 12pt;
+}
+p, h2, h3 {
+orphans: 3;
+widows: 3;
+}
+h2, h3, h4 {
+page-break-after: avoid;
+}
+}
+p {
+margin: 1em 0;
+}
+a {
+color: #1a1a1a;
+}
+a:visited {
+color: #1a1a1a;
+}
+img {
+max-width: 100%;
+}
+svg {
+height: auto;
+max-width: 100%;
+}
+h1, h2, h3, h4, h5, h6 {
+margin-top: 1.4em;
+}
+h5, h6 {
+font-size: 1em;
+font-style: italic;
+}
+h6 {
+font-weight: normal;
+}
+ol, ul {
+padding-left: 1.7em;
+margin-top: 1em;
+}
+li > ol, li > ul {
+margin-top: 0;
+}
+blockquote {
+margin: 1em 0 1em 1.7em;
+padding-left: 1em;
+border-left: 2px solid #e6e6e6;
+color: #606060;
+}
+code {
+white-space: pre-wrap;
+font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
+font-size: 85%;
+margin: 0;
+hyphens: manual;
+}
+pre {
+margin: 1em 0;
+overflow: auto;
+}
+pre code {
+padding: 0;
+overflow: visible;
+overflow-wrap: normal;
+}
+.sourceCode {
+background-color: transparent;
+overflow: visible;
+}
+hr {
+border: none;
+border-top: 1px solid #1a1a1a;
+height: 1px;
+margin: 1em 0;
+}
+table {
+margin: 1em 0;
+border-collapse: collapse;
+width: 100%;
+overflow-x: auto;
+display: block;
+font-variant-numeric: lining-nums tabular-nums;
+}
+table caption {
+margin-bottom: 0.75em;
+}
+tbody {
+margin-top: 0.5em;
+border-top: 1px solid #1a1a1a;
+border-bottom: 1px solid #1a1a1a;
+}
+th {
+border-top: 1px solid #1a1a1a;
+padding: 0.25em 0.5em 0.25em 0.5em;
+}
+td {
+padding: 0.125em 0.5em 0.25em 0.5em;
+}
+header {
+margin-bottom: 4em;
+text-align: center;
+}
+#TOC li {
+list-style: none;
+}
+#TOC ul {
+padding-left: 1.3em;
+}
+#TOC > ul {
+padding-left: 0;
+}
+#TOC a:not(:hover) {
+text-decoration: none;
+}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+
+ul.task-list[class]{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+font-size: inherit;
+width: 0.8em;
+margin: 0 0.8em 0.2em -1.6em;
+vertical-align: middle;
+}
+.display.math{display: block; text-align: center; margin: 0.5rem auto;}
+</style>
+</head>
+<body>
+<h1 id="graphify-report-cargo-delivery-service">Graphify Report — Cargo
+Delivery Service</h1>
+<p><strong>Generated:</strong> 2026-06-14<br />
+<strong>Repository:</strong> D: <strong>Analysis Scope:</strong> Full
+codebase (architecture docs, frontend source, mock data, status mapping
+engine)</p>
+<hr />
+<h2 id="executive-summary">Executive Summary</h2>
+<p>The Cargo Delivery Service is a centralized multi-carrier logistics
+platform. It unifies 4 major carriers (DHL, FedEx, UPS, Chronopost)
+under a single adapter interface with a sophisticated status mapping
+engine that translates 64+ carrier-specific status codes into 12 unified
+internal codes across 3 matching strategies (exact, regex, fuzzy). The
+frontend is a React + Vite + Tailwind TypeScript SPA with full CRUD on
+all entities, JWT-mock authentication, and multilingual support
+(EN/FR/TR).</p>
+<p>The graph contains <strong>40 nodes</strong> and <strong>48
+edges</strong> organized into <strong>4 communities</strong>.</p>
+<hr />
+<h2 id="graph-statistics">Graph Statistics</h2>
+<table>
+<thead>
+<tr>
+<th>Metric</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Total Nodes</td>
+<td>40</td>
+</tr>
+<tr>
+<td>Total Edges</td>
+<td>48</td>
+</tr>
+<tr>
+<td>Communities</td>
+<td>4</td>
+</tr>
+<tr>
+<td>EXTRACTED edges</td>
+<td>43 (89.6%)</td>
+</tr>
+<tr>
+<td>INFERRED edges</td>
+<td>5 (10.4%)</td>
+</tr>
+<tr>
+<td>Avg. confidence score</td>
+<td>0.949</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="community-map">Community Map</h2>
+<h3 id="community-0-architecture-carrier-adapters">Community 0 —
+Architecture &amp; Carrier Adapters</h3>
+<p><strong>Color:</strong> Blue (#3b82f6)<br />
+<strong>Nodes:</strong> 7</p>
+<p>The architectural backbone. A unified <code>CarrierAdapter</code>
+interface is implemented by 4 carrier-specific adapters (DHL, FedEx,
+UPS, Chronopost), each normalizing carrier-specific concepts into a
+shared <code>UnifiedStatusModel</code>. The
+<code>CARGO-SERVICE-ARCHITECTURE.md</code> document defines the full
+contract.</p>
+<ul>
+<li><strong>God Node:</strong> <code>cargo_service_arch</code> (degree:
+5) — references endpoint docs, defines carrier adapter, connects to all
+adapter nodes</li>
+<li><strong>Key Pattern:</strong> Pluggable adapter pattern — adding a
+new carrier requires only implementing the interface</li>
+</ul>
+<h3 id="community-1-status-mapping-engine">Community 1 — Status Mapping
+Engine</h3>
+<p><strong>Color:</strong> Green (#10b981)<br />
+<strong>Nodes:</strong> 6</p>
+<p>The most technically sophisticated component.
+<code>StatusMapperEngine</code> maintains per-carrier maps with 3-tier
+matching (exact string → regex patterns → fuzzy substring fallback). It
+detects terminal vs. blocking states, builds milestone timelines, and
+verifies lifecycle transitions.</p>
+<table>
+<thead>
+<tr>
+<th>Carrier</th>
+<th>Codes Mapped</th>
+<th>Strategy Count</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>DHL</td>
+<td>15</td>
+<td>Exact (8) + Regex (5) + Fuzzy (2)</td>
+</tr>
+<tr>
+<td>FedEx</td>
+<td>16</td>
+<td>Exact (9) + Regex (5) + Fuzzy (2)</td>
+</tr>
+<tr>
+<td>UPS</td>
+<td>18</td>
+<td>Exact (10) + Regex (6) + Fuzzy (2)</td>
+</tr>
+<tr>
+<td>Chronopost</td>
+<td>15</td>
+<td>Exact (7) + Regex (5) + Fuzzy (3)</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li><strong>God Node:</strong> <code>status_mapper</code> (degree: 6) —
+central hub connecting to all carrier maps + milestone builder + unified
+status model</li>
+<li><strong>God Node:</strong> <code>unified_status</code> (degree: 5) —
+used by all 4 adapters and the mapper</li>
+</ul>
+<h3 id="community-2-frontend-application">Community 2 — Frontend
+Application</h3>
+<p><strong>Color:</strong> Yellow (#f59e0b)<br />
+<strong>Nodes:</strong> 21</p>
+<p>The largest community. A React 18 + TypeScript SPA built with Vite
+and Tailwind CSS, organized around a service-layer architecture.</p>
+<p><strong>Layer Architecture:</strong></p>
+<pre><code>Pages (dashboard, shipments, carriers, etc.)
+  → Shared Components (Sidebar, DataTable, Modal, etc.)
+    → React Hooks (useApi, useMutation)
+      → Cargo Service Layer (20+ API functions)
+        → Mock Data (6 entity stores)
+        → Status Mapper Engine</code></pre>
+<p><strong>Key Metrics:</strong> - 9 page components, all with full CRUD
+modals - 6+ shared/reusable components - 4 form components
+(ShipmentForm, CarrierForm, PickupForm, ServiceForm) - AuthGuard route
+protection wrapping all pages - 750+ i18n keys across 3 locales</p>
+<p><strong>God Nodes:</strong> - <code>react_frontend</code> (degree: 6)
+— root dependency hub - <code>cargo_service_layer</code> (degree: 9) —
+most highly connected node in the graph, used by every page -
+<code>auth_system</code> (degree: 3) — crosscuts both frontend and REST
+endpoint design</p>
+<h3 id="community-3-api-design-documentation">Community 3 — API Design
+&amp; Documentation</h3>
+<p><strong>Color:</strong> Purple (#8b5cf6)<br />
+<strong>Nodes:</strong> 7</p>
+<p>Documents the RESTful API contract covering 18 endpoints organized
+around 6 functional areas: - Shipment Lifecycle (7 states: draft →
+cancelled/delivered) - Carrier CRUD (add/edit/delete carriers) - Rate
+Engine (quote calculation) - Pickup Flow (schedule/cancel pickups) -
+Webhook Simulation (trigger/receive webhooks) - Address Validation</p>
+<p><strong>God Node:</strong> <code>rest_endpoints</code> (degree: 6) —
+documents all functional areas</p>
+<hr />
+<h2 id="endpoint-reference-18-endpoints">Endpoint Reference (18
+endpoints)</h2>
+<table style="width:100%;">
+<colgroup>
+<col style="width: 16%" />
+<col style="width: 16%" />
+<col style="width: 16%" />
+<col style="width: 16%" />
+<col style="width: 16%" />
+<col style="width: 16%" />
+</colgroup>
+<thead>
+<tr>
+<th>#</th>
+<th>Method</th>
+<th>Path</th>
+<th>Purpose</th>
+<th>Frontend Page</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>POST</td>
+<td><code>/api/v1/cargo/auth/login</code></td>
+<td>Authenticate (mock JWT)</td>
+<td>Login</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>2</td>
+<td>POST</td>
+<td><code>/api/v1/cargo/rates</code></td>
+<td>Get shipping rates</td>
+<td>Rates</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>3</td>
+<td>POST</td>
+<td><code>/api/v1/cargo/shipments</code></td>
+<td>Create shipment</td>
+<td>Shipments</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>4</td>
+<td>GET</td>
+<td><code>/api/v1/cargo/shipments/{id}</code></td>
+<td>Get shipment details</td>
+<td>ShipmentDetail</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>5</td>
+<td>GET</td>
+<td><code>/api/v1/cargo/shipments/{id}/tracking</code></td>
+<td>Full tracking with events</td>
+<td>ShipmentDetail → Tracking</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>6</td>
+<td>POST</td>
+<td><code>/api/v1/cargo/shipments/{id}/cancel</code></td>
+<td>Cancel shipment</td>
+<td>ShipmentDetail</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>7</td>
+<td>POST</td>
+<td><code>/api/v1/cargo/shipments/{id}/label</code></td>
+<td>Generate label</td>
+<td>ShipmentDetail</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>8</td>
+<td>POST</td>
+<td><code>/api/v1/cargo/pickups</code></td>
+<td>Schedule a pickup</td>
+<td>Pickups</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>9</td>
+<td>POST</td>
+<td><code>/api/v1/cargo/webhooks/{carrierCode}</code></td>
+<td>Receive carrier push updates</td>
+<td>WebhookLogs</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>10</td>
+<td>POST</td>
+<td><code>/api/v1/cargo/addresses/validate</code></td>
+<td>Validate &amp; normalize address</td>
+<td>Shipments form</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>11</td>
+<td>POST</td>
+<td><code>/api/v1/cargo/carriers</code></td>
+<td>Add new carrier</td>
+<td>Carriers</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>12</td>
+<td>GET</td>
+<td><code>/api/v1/cargo/carriers</code></td>
+<td>List all carriers</td>
+<td>Carriers</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>13</td>
+<td>GET</td>
+<td><code>/api/v1/cargo/carriers/{code}</code></td>
+<td>Get carrier detail</td>
+<td>CarrierDetail</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>14</td>
+<td>PUT</td>
+<td><code>/api/v1/cargo/carriers/{code}</code></td>
+<td>Update carrier settings</td>
+<td>CarrierDetail</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>15</td>
+<td>PATCH</td>
+<td><code>/api/v1/cargo/carriers/{code}/toggle</code></td>
+<td>Enable/disable carrier</td>
+<td>CarrierDetail</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>16</td>
+<td>POST</td>
+<td><code>/api/v1/cargo/carriers/{code}/test</code></td>
+<td>Test carrier API connection</td>
+<td>CarrierDetail</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>17</td>
+<td>POST</td>
+<td><code>/api/v1/cargo/carriers/{code}/services</code></td>
+<td>Add a carrier service</td>
+<td>CarrierDetail</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>18</td>
+<td>PUT</td>
+<td><code>/api/v1/cargo/carriers/{code}/credentials</code></td>
+<td>Update carrier API keys</td>
+<td>CarrierDetail</td>
+<td>✅</td>
+</tr>
+</tbody>
+</table>
+<h3 id="frontend-endpoint-mapping">Frontend ↔︎ Endpoint Mapping</h3>
+<pre><code>Login (Page)            → auth/login
+Rates (Page)            → cargo/rates
+Shipments (Page)        → cargo/shipments (CRUD list + create)
+ShipmentDetail (Page)   → cargo/shipments/{id} (get, cancel, label, tracking)
+Carriers (Page)         → cargo/carriers (list + add)
+CarrierDetail (Page)    → cargo/carriers/{code} (detail, edit, toggle, test, services, credentials)
+Pickups (Page)          → cargo/pickups (schedule, cancel)
+WebhookLogs (Page)      → cargo/webhooks/{carrierCode} (view logs)
+Dashboard (Page)        → aggregates data from shipments + carriers (stats)</code></pre>
+<h3 id="mock-service-functions-20-in-cargoservice.ts">Mock Service
+Functions (20+ in <code>cargoService.ts</code>)</h3>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>Function</th>
+<th>Endpoint</th>
+<th>Type</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>login()</code></td>
+<td>POST auth/login</td>
+<td>Query</td>
+</tr>
+<tr>
+<td><code>getRates(req)</code></td>
+<td>POST cargo/rates</td>
+<td>Query</td>
+</tr>
+<tr>
+<td><code>getShipments()</code></td>
+<td>GET cargo/shipments</td>
+<td>List</td>
+</tr>
+<tr>
+<td><code>getShipmentById(id)</code></td>
+<td>GET cargo/shipments/{id}</td>
+<td>Detail</td>
+</tr>
+<tr>
+<td><code>createShipment(req)</code></td>
+<td>POST cargo/shipments</td>
+<td>Mutation</td>
+</tr>
+<tr>
+<td><code>deleteShipment(id)</code></td>
+<td>DELETE cargo/shipments/{id}</td>
+<td>Mutation</td>
+</tr>
+<tr>
+<td><code>updateShipment(id, data)</code></td>
+<td>PUT cargo/shipments/{id}</td>
+<td>Mutation</td>
+</tr>
+<tr>
+<td><code>cancelShipment(id)</code></td>
+<td>POST cargo/shipments/{id}/cancel</td>
+<td>Mutation</td>
+</tr>
+<tr>
+<td><code>getTrackingData(id)</code></td>
+<td>GET cargo/shipments/{id}/tracking</td>
+<td>Detail</td>
+</tr>
+<tr>
+<td><code>getCarriers()</code></td>
+<td>GET cargo/carriers</td>
+<td>List</td>
+</tr>
+<tr>
+<td><code>getCarrierByCode(code)</code></td>
+<td>GET cargo/carriers/{code}</td>
+<td>Detail</td>
+</tr>
+<tr>
+<td><code>addCarrier(data)</code></td>
+<td>POST cargo/carriers</td>
+<td>Mutation</td>
+</tr>
+<tr>
+<td><code>updateCarrier(code, data)</code></td>
+<td>PUT cargo/carriers/{code}</td>
+<td>Mutation</td>
+</tr>
+<tr>
+<td><code>deleteCarrier(code)</code></td>
+<td>DELETE cargo/carriers/{code}</td>
+<td>Mutation</td>
+</tr>
+<tr>
+<td><code>toggleCarrier(code, active)</code></td>
+<td>PATCH cargo/carriers/{code}/toggle</td>
+<td>Mutation</td>
+</tr>
+<tr>
+<td><code>testCarrierConnection(code)</code></td>
+<td>POST cargo/carriers/{code}/test</td>
+<td>Query</td>
+</tr>
+<tr>
+<td><code>addCarrierService(code, data)</code></td>
+<td>POST cargo/carriers/{code}/services</td>
+<td>Mutation</td>
+</tr>
+<tr>
+<td><code>deleteCarrierService(code, svcCode)</code></td>
+<td>DELETE cargo/carriers/{code}/services/{svcCode}</td>
+<td>Mutation</td>
+</tr>
+<tr>
+<td><code>updateCarrierCredentials(code, data)</code></td>
+<td>PUT cargo/carriers/{code}/credentials</td>
+<td>Mutation</td>
+</tr>
+<tr>
+<td><code>getPickups()</code></td>
+<td>GET cargo/pickups</td>
+<td>List</td>
+</tr>
+<tr>
+<td><code>schedulePickup(data)</code></td>
+<td>POST cargo/pickups</td>
+<td>Mutation</td>
+</tr>
+<tr>
+<td><code>cancelPickup(id)</code></td>
+<td>POST cargo/pickups/{id}/cancel</td>
+<td>Mutation</td>
+</tr>
+<tr>
+<td><code>getWebhookLogs()</code></td>
+<td>GET cargo/webhooks/logs</td>
+<td>List</td>
+</tr>
+<tr>
+<td><code>validateAddress(req)</code></td>
+<td>POST cargo/addresses/validate</td>
+<td>Query</td>
+</tr>
+<tr>
+<td><code>getDashboardStats()</code></td>
+<td>GET cargo/stats/dashboard</td>
+<td>Detail</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="god-nodes-high-connectivity-hubs">God Nodes (High-Connectivity
+Hubs)</h2>
+<table>
+<thead>
+<tr>
+<th>Node</th>
+<th>Community</th>
+<th>Degree</th>
+<th>File Type</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>cargo_service_layer</td>
+<td>Frontend</td>
+<td>9</td>
+<td>code</td>
+</tr>
+<tr>
+<td>cargo_service_arch</td>
+<td>Architecture</td>
+<td>5</td>
+<td>document</td>
+</tr>
+<tr>
+<td>unified_status</td>
+<td>Architecture</td>
+<td>5</td>
+<td>code</td>
+</tr>
+<tr>
+<td>status_mapper</td>
+<td>Status Mapping</td>
+<td>6</td>
+<td>code</td>
+</tr>
+<tr>
+<td>react_frontend</td>
+<td>Frontend</td>
+<td>6</td>
+<td>code</td>
+</tr>
+<tr>
+<td>rest_endpoints</td>
+<td>API Design</td>
+<td>6</td>
+<td>document</td>
+</tr>
+<tr>
+<td>shared_components</td>
+<td>Frontend</td>
+<td>5</td>
+<td>code</td>
+</tr>
+</tbody>
+</table>
+<p>The <strong><code>cargo_service_layer</code></strong> is the single
+most critical node — every page depends on it. The
+<strong><code>status_mapper</code></strong> is the most technically
+complex.</p>
+<hr />
+<h2 id="edge-analysis">Edge Analysis</h2>
+<h3 id="strongest-relations-extracted-confidence-1.0">Strongest
+Relations (EXTRACTED, confidence = 1.0)</h3>
+<p>43 edges are directly extracted from the codebase (89.6%). These
+include: - <code>depends_on</code> — frontend layer hierarchy -
+<code>contains</code> — mapper → maps, arch → adapter -
+<code>implements</code> — adapter interface → carrier implementations -
+<code>uses</code> — pages → service layer, forms → pages -
+<code>part_of</code> — components → frontend framework -
+<code>maps_to</code> — status mapper → unified status model</p>
+<h3 id="inferred-relations-confidence-1.0">Inferred Relations
+(confidence &lt; 1.0)</h3>
+<p>5 edges are semantically inferred (10.4%): - <code>complements</code>
+— status_mapper ↔︎ carrier_adapter (0.85) - <code>crosscuts</code> —
+i18n_system → react_frontend (0.95) - <code>links_to</code> — dashboard
+→ shipments (0.95), shipments → tracking (1.0) -
+<code>competes_with</code> — DHL ↔︎ FedEx (0.85), UPS ↔︎ Chronopost (0.75)
+- <code>required_by</code> — auth_system → endpoints (0.85)</p>
+<hr />
+<h2 id="orphan-overlap-analysis">Orphan &amp; Overlap Analysis</h2>
+<p><strong>Orphans:</strong> 0 — all nodes have at least 1 edge.<br />
+<strong>Overlaps:</strong> The <code>auth_system</code> node bridges
+Community 2 (Frontend) and Community 3 (API Design), as authentication
+crosscuts both frontend routing and backend endpoint security.</p>
+<hr />
+<h2 id="key-architectural-insights">Key Architectural Insights</h2>
+<ol type="1">
+<li><p><strong>Pluggable Carrier Architecture</strong> — Adding a 5th
+carrier requires: (a) implement adapter interface, (b) add status map
+entries, (c) add mock data rows. No changes to existing code.</p></li>
+<li><p><strong>Status Mapping is the Core Differentiator</strong> —
+3-tier matching with regex means the system handles real-world carrier
+status variations (typos, locale differences, formatting). Turkish
+carrier status names are supported via regex patterns.</p></li>
+<li><p><strong>Service Layer as God Node</strong> — The single
+<code>cargoService.ts</code> module is the bottleneck. Consider
+splitting into domain-specific services (shipmentService.ts,
+carrierService.ts, etc.) for better maintainability.</p></li>
+<li><p><strong>Frontend Outweighs Backend</strong> — 21 of 40 nodes
+(52.5%) are frontend-related. The “backend” is currently mock data, but
+the architecture is ready for real API integration by swapping
+<code>cargoService.ts</code> implementations.</p></li>
+<li><p><strong>Documentation is Centralized</strong> — 3 service
+documentation files (EN, FR, color-coded) cover the same API spec,
+creating potential sync drift. Consider auto-generating from a single
+source.</p></li>
+</ol>
+<hr />
+<h2 id="community-cross-reference">Community Cross-Reference</h2>
+<pre><code>                    ┌──────────────────────┐
+                    │   Architecture        │
+                    │   (Community 0)       │
+                    └──────────┬───────────┘
+                               │ defines
+                               ▼
+                    ┌──────────────────────┐
+          ┌────────►│   Status Mapping     │◄────────┐
+          │         │   (Community 1)       │         │
+          │         └──────────┬───────────┘         │
+          │                    │ maps_to              │
+          │                    ▼                     │
+          │         ┌──────────────────────┐         │
+          │         │   Frontend App       │         │
+          ├────────►│   (Community 2)      │◄────────┤
+          │         └──────────┬───────────┘         │
+          │                    │ documentation        │
+          │                    ▼                     │
+          │         ┌──────────────────────┐         │
+          └────────►│   API Design         │─────────┘
+                    │   (Community 3)      │
+                    └──────────────────────┘</code></pre>
+<hr />
+<h2 id="file-details">File Details</h2>
+<h3 id="core-documents">Core Documents</h3>
+<table>
+<thead>
+<tr>
+<th>File</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>CARGO-SERVICE-ARCHITECTURE.md</code></td>
+<td>Full backend architecture plan</td>
+</tr>
+<tr>
+<td><code>service_cargo.md</code></td>
+<td>API endpoint docs (French)</td>
+</tr>
+<tr>
+<td><code>cargo_service.md</code></td>
+<td>API endpoint docs (English)</td>
+</tr>
+<tr>
+<td><code>cargo_service_api.md</code></td>
+<td>Color-coded API reference</td>
+</tr>
+</tbody>
+</table>
+<h3 id="frontend-source">Frontend Source</h3>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr>
+<th>File/Dir</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>frontend/src/types/index.ts</code></td>
+<td>14 TypeScript interfaces</td>
+</tr>
+<tr>
+<td><code>frontend/src/data/mockData.ts</code></td>
+<td>6 entity mock stores</td>
+</tr>
+<tr>
+<td><code>frontend/src/services/statusMapper.ts</code></td>
+<td>Status mapping engine (4 carriers)</td>
+</tr>
+<tr>
+<td><code>frontend/src/services/cargoService.ts</code></td>
+<td>20+ mock API functions</td>
+</tr>
+<tr>
+<td><code>frontend/src/hooks/useCargoService.ts</code></td>
+<td>useApi, useApiById, useMutation, useLoading</td>
+</tr>
+<tr>
+<td><code>frontend/src/context/AuthContext.tsx</code></td>
+<td>JWT mock auth state</td>
+</tr>
+<tr>
+<td><code>frontend/src/i18n/</code></td>
+<td>EN/FR/TR translation system</td>
+</tr>
+<tr>
+<td><code>frontend/src/pages/</code></td>
+<td>9 page components</td>
+</tr>
+<tr>
+<td><code>frontend/src/components/</code></td>
+<td>10+ shared components</td>
+</tr>
+<tr>
+<td><code>frontend/src/components/forms/</code></td>
+<td>4 form components</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<p><em>Report generated by Graphify knowledge graph pipeline.</em></p>
+</body>
+</html>
