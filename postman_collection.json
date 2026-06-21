@@ -1,0 +1,342 @@
+{
+  "info": {
+    "name": "Cargo Delivery Service - Scénario Complet",
+    "description": "Collection Postman pour tester le scénario complet : Transporteurs → Expédition → Webhook → Suivi",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "1. Lister les transporteurs",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "var jsonData = pm.response.json();",
+              "pm.test('Status 200', () => pm.response.to.have.status(200));",
+              "pm.test('Liste des transporteurs', () => {",
+              "  pm.expect(jsonData.data.length).to.eql(6);",
+              "});",
+              "var carriers = jsonData.data.map(c => c.code + ' - ' + c.name);",
+              "console.log('Transporteurs:', carriers.join(', '));"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/carriers",
+          "host": ["{{base_url}}"],
+          "path": ["carriers"]
+        }
+      }
+    },
+    {
+      "name": "2. Créer expédition DHL",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "var jsonData = pm.response.json();",
+              "pm.test('Status 201', () => pm.response.to.have.status(201));",
+              "pm.test('Expédition créée', () => {",
+              "  pm.expect(jsonData.success).to.eql(true);",
+              "  pm.expect(jsonData.data.id).to.not.be.empty;",
+              "  pm.expect(jsonData.data.carrierCode).to.eql('DHL');",
+              "  pm.expect(jsonData.data.internalStatus).to.eql('PENDING');",
+              "});",
+              "pm.collectionVariables.set('shipment_id', jsonData.data.id);",
+              "pm.collectionVariables.set('tracking_no', jsonData.data.carrierTrackingNumber);",
+              "console.log('Expédition ID:', jsonData.data.id);",
+              "console.log('Tracking:', jsonData.data.carrierTrackingNumber);",
+              "console.log('Prix:', jsonData.data.price.total, jsonData.data.price.currency);"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"carrierCode\": \"DHL\",\n  \"serviceCode\": \"DHL_EXP\",\n  \"reference\": \"CMD-2026-POSTMAN\",\n  \"sender\": {\n    \"company\": \"TechCorp SAS\",\n    \"contactName\": \"Jean Dupont\",\n    \"email\": \"jean@techcorp.fr\",\n    \"phone\": \"+33123456789\",\n    \"country\": \"FR\",\n    \"zipCode\": \"75001\",\n    \"city\": \"Paris\",\n    \"address\": \"12 Rue de Rivoli\"\n  },\n  \"recipient\": {\n    \"company\": \"Berlin GmbH\",\n    \"contactName\": \"Hans Schmidt\",\n    \"email\": \"hans@berlin.de\",\n    \"phone\": \"+4930123456\",\n    \"country\": \"DE\",\n    \"zipCode\": \"10115\",\n    \"city\": \"Berlin\",\n    \"address\": \"Friedrichstraße 100\"\n  },\n  \"packages\": [\n    {\n      \"reference\": \"COLIS-001\",\n      \"description\": \"Composants électroniques\",\n      \"weight\": 2.5,\n      \"weightUnit\": \"KG\",\n      \"length\": 30,\n      \"width\": 20,\n      \"height\": 15,\n      \"dimUnit\": \"CM\",\n      \"declaredValue\": 500.00,\n      \"declaredCurrency\": \"EUR\"\n    }\n  ],\n  \"options\": {\n    \"signatureRequired\": true,\n    \"saturdayDelivery\": false\n  }\n}"
+        }
+      },
+      "url": {
+        "raw": "{{base_url}}/shipments",
+        "host": ["{{base_url}}"],
+        "path": ["shipments"]
+      }
+    },
+    {
+      "name": "3. Voir le détail de l'expédition",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/shipments/{{shipment_id}}",
+          "host": ["{{base_url}}"],
+          "path": ["shipments", "{{shipment_id}}"]
+        }
+      }
+    },
+    {
+      "name": "4. Webhook DHL - Prise en charge (PICKED_UP)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status 200', () => pm.response.to.have.status(200));"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"trackingNumber\": \"{{tracking_no}}\",\n  \"status\": \"PICKED_UP\",\n  \"statusDescription\": \"Shipment picked up\",\n  \"timestamp\": \"2026-06-21T10:00:00Z\",\n  \"location\": {\n    \"city\": \"Paris\",\n    \"country\": \"FR\"\n  }\n}"
+        }
+      },
+      "url": {
+        "raw": "{{base_url}}/webhooks/DHL",
+        "host": ["{{base_url}}"],
+        "path": ["webhooks", "DHL"]
+      }
+    },
+    {
+      "name": "5. Vérifier le statut après webhook",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "var jsonData = pm.response.json();",
+              "pm.test('Statut mis à jour PICKED_UP', () => {",
+              "  pm.expect(jsonData.data.internalStatus).to.eql('PICKED_UP');",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/shipments/{{shipment_id}}",
+          "host": ["{{base_url}}"],
+          "path": ["shipments", "{{shipment_id}}"]
+        }
+      }
+    },
+    {
+      "name": "6. Webhook DHL - Livré (DELIVERED)",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"trackingNumber\": \"{{tracking_no}}\",\n  \"status\": \"DELIVERED\",\n  \"statusDescription\": \"Shipment delivered\",\n  \"timestamp\": \"2026-06-22T14:30:00Z\",\n  \"location\": {\n    \"city\": \"Berlin\",\n    \"country\": \"DE\"\n  },\n  \"signedBy\": \"Hans Schmidt\"\n}"
+        }
+      },
+      "url": {
+        "raw": "{{base_url}}/webhooks/DHL",
+        "host": ["{{base_url}}"],
+        "path": ["webhooks", "DHL"]
+      }
+    },
+    {
+      "name": "7. Vérifier le statut DELIVERED",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "var jsonData = pm.response.json();",
+              "pm.test('Statut mis à jour DELIVERED', () => {",
+              "  pm.expect(jsonData.data.internalStatus).to.eql('DELIVERED');",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/shipments/{{shipment_id}}",
+          "host": ["{{base_url}}"],
+          "path": ["shipments", "{{shipment_id}}"]
+        }
+      }
+    },
+    {
+      "name": "8. Suivi détaillé de l'expédition",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "var jsonData = pm.response.json();",
+              "pm.test('Suivi retourné', () => {",
+              "  pm.expect(jsonData.data.events.length).to.be.at.least(2);",
+              "});",
+              "console.log('Événements reçus:', jsonData.data.events.length);"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/shipments/{{shipment_id}}/tracking",
+          "host": ["{{base_url}}"],
+          "path": ["shipments", "{{shipment_id}}", "tracking"]
+        }
+      }
+    },
+    {
+      "name": "9. Webhook UPS - Format UPS (state: Completed)",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"shipment_id\": \"1Z999AA10123456784\",\n  \"state\": \"Completed\",\n  \"customer\": \"John\",\n  \"signed_by\": \"John\",\n  \"timestamp\": \"2026-06-22T15:00:00Z\"\n}"
+        }
+      },
+      "url": {
+        "raw": "{{base_url}}/webhooks/UPS",
+        "host": ["{{base_url}}"],
+        "path": ["webhooks", "UPS"]
+      }
+    },
+    {
+      "name": "10. Webhook Yurtiçi - Format turc (durum: Teslim Edildi)",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"takipNo\": \"YT2026001122334\",\n  \"durum\": \"Teslim Edildi\",\n  \"alici\": \"Ahmet\",\n  \"tarih\": \"2026-06-22T16:00:00Z\"\n}"
+        }
+      },
+      "url": {
+        "raw": "{{base_url}}/webhooks/YURTICI",
+        "host": ["{{base_url}}"],
+        "path": ["webhooks", "YURTICI"]
+      }
+    },
+    {
+      "name": "11. Créer expédition UPS",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"carrierCode\": \"UPS\",\n  \"serviceCode\": \"UPS_EXP\",\n  \"reference\": \"CMD-UPS-POSTMAN\",\n  \"sender\": {\n    \"country\": \"FR\",\n    \"zipCode\": \"75001\",\n    \"city\": \"Paris\",\n    \"address\": \"1 Rue Test\"\n  },\n  \"recipient\": {\n    \"country\": \"US\",\n    \"zipCode\": \"10001\",\n    \"city\": \"New York\",\n    \"address\": \"5th Ave\"\n  },\n  \"packages\": [\n    {\n      \"weight\": 3.0,\n      \"weightUnit\": \"KG\"\n    }\n  ]\n}"
+        }
+      },
+      "url": {
+        "raw": "{{base_url}}/shipments",
+        "host": ["{{base_url}}"],
+        "path": ["shipments"]
+      }
+    },
+    {
+      "name": "12. Comparer les tarifs (Rates)",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"sender\": {\n    \"country\": \"FR\",\n    \"zipCode\": \"75001\",\n    \"city\": \"Paris\",\n    \"address\": \"12 Rue de Rivoli\"\n  },\n  \"recipient\": {\n    \"country\": \"DE\",\n    \"zipCode\": \"10115\",\n    \"city\": \"Berlin\",\n    \"address\": \"Friedrichstraße 100\"\n  },\n  \"packages\": [\n    {\n      \"weight\": 2.5,\n      \"weightUnit\": \"KG\",\n      \"length\": 30,\n      \"width\": 20,\n      \"height\": 15,\n      \"dimUnit\": \"CM\"\n    }\n  ]\n}"
+        }
+      },
+      "url": {
+        "raw": "{{base_url}}/rates",
+        "host": ["{{base_url}}"],
+        "path": ["rates"]
+      }
+    },
+    {
+      "name": "13. Planifier un enlèvement",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"carrierCode\": \"DHL\",\n  \"shipmentIds\": [\"{{shipment_id}}\"],\n  \"pickupDate\": \"2026-06-23\",\n  \"readyTime\": \"09:00\",\n  \"closeTime\": \"17:00\",\n  \"location\": {\n    \"company\": \"TechCorp SAS\",\n    \"contactName\": \"Jean Dupont\",\n    \"phone\": \"+33123456789\",\n    \"country\": \"FR\",\n    \"zipCode\": \"75001\",\n    \"city\": \"Paris\",\n    \"address\": \"12 Rue de Rivoli\"\n  },\n  \"totalPackages\": 1,\n  \"totalWeight\": 2.5,\n  \"weightUnit\": \"KG\"\n}"
+        }
+      },
+      "url": {
+        "raw": "{{base_url}}/pickups",
+        "host": ["{{base_url}}"],
+        "path": ["pickups"]
+      }
+    },
+    {
+      "name": "14. Valider une adresse",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"country\": \"US\",\n  \"zipCode\": \"10001\",\n  \"city\": \"New York\",\n  \"address\": \"123 Main St\",\n  \"carrierCode\": \"DHL\"\n}"
+        }
+      },
+      "url": {
+        "raw": "{{base_url}}/addresses/validate",
+        "host": ["{{base_url}}"],
+        "path": ["addresses", "validate"]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8000/api/v1/cargo",
+      "type": "string"
+    },
+    {
+      "key": "shipment_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "tracking_no",
+      "value": "",
+      "type": "string"
+    }
+  ]
+}
