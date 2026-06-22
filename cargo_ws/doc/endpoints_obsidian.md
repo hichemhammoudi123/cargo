@@ -4,6 +4,7 @@
 
 ### `GET /api/v1/cargo/shipments`
 Lister les expéditions.
+
 ```json
 // Response 200
 {
@@ -26,6 +27,7 @@ Lister les expéditions.
 
 ### `POST /api/v1/cargo/shipments`
 Créer une expédition.
+
 ```json
 // Request
 {
@@ -108,6 +110,7 @@ Créer une expédition.
 
 ### `GET /api/v1/cargo/shipments/{id}`
 Détail d'une expédition.
+
 ```json
 // Response 200
 {
@@ -139,13 +142,12 @@ Détail d'une expédition.
 
 ### `PUT /api/v1/cargo/shipments/{id}`
 Modifier une expédition (statut SUBMITTED uniquement).
+
 ```json
 // Request
 {
   "reference": "CMD-2026-MODIFIED",
-  "options": {
-    "signatureRequired": false
-  }
+  "options": { "signatureRequired": false }
 }
 
 // Response 200
@@ -161,6 +163,7 @@ Modifier une expédition (statut SUBMITTED uniquement).
 
 ### `DELETE /api/v1/cargo/shipments/{id}`
 Supprimer une expédition (statut DRAFT ou SUBMITTED uniquement).
+
 ```json
 // Response 200
 { "success": true, "data": { "deleted": true } }
@@ -168,6 +171,7 @@ Supprimer une expédition (statut DRAFT ou SUBMITTED uniquement).
 
 ### `POST /api/v1/cargo/shipments/{id}/cancel`
 Annuler une expédition.
+
 ```json
 // Response 200
 {
@@ -183,6 +187,7 @@ Annuler une expédition.
 
 ### `POST /api/v1/cargo/shipments/{id}/label`
 Générer l'étiquette.
+
 ```json
 // Request
 { "format": "PDF" }
@@ -205,6 +210,7 @@ Générer l'étiquette.
 
 ### `GET /api/v1/cargo/shipments/{id}/tracking`
 Suivi détaillé d'une expédition.
+
 ```json
 // Response 200
 {
@@ -247,6 +253,7 @@ Suivi détaillé d'une expédition.
 
 ### `POST /api/v1/cargo/webhooks/{carrierCode}`
 Webhook entrant — le transporteur nous notifie d'un changement de statut.
+
 ```json
 // UPS envoie :
 { "shipment_id": "1Z999AA10123456784", "state": "Completed", "timestamp": "2026-06-13T16:30:00Z" }
@@ -267,6 +274,7 @@ Webhook entrant — le transporteur nous notifie d'un changement de statut.
 
 ### `POST /api/v1/cargo/rates`
 Comparer les prix de tous les transporteurs.
+
 ```json
 // Request
 {
@@ -327,6 +335,7 @@ Comparer les prix de tous les transporteurs.
 
 ### `GET /api/v1/cargo/pickups`
 Lister les enlèvements.
+
 ```json
 // Response 200
 {
@@ -347,6 +356,7 @@ Lister les enlèvements.
 
 ### `POST /api/v1/cargo/pickups`
 Planifier un enlèvement.
+
 ```json
 // Request
 {
@@ -386,6 +396,7 @@ Planifier un enlèvement.
 
 ### `GET /api/v1/cargo/pickups/{id}`
 Détail d'un enlèvement.
+
 ```json
 // Response 200
 {
@@ -410,6 +421,7 @@ Détail d'un enlèvement.
 
 ### `PUT /api/v1/cargo/pickups/{id}`
 Modifier un enlèvement.
+
 ```json
 // Request
 {
@@ -420,11 +432,12 @@ Modifier un enlèvement.
 }
 
 // Response 200
-{ "success": true, "data": { /* mêmes champs que GET detail */ } }
+{ "success": true, "data": { "mêmes champs que GET detail" } }
 ```
 
 ### `DELETE /api/v1/cargo/pickups/{id}`
 Supprimer (annuler) un enlèvement.
+
 ```json
 // Response 200
 { "success": true, "data": { "id": "pck_001a2b3c", "status": "CANCELLED", "cancelledAt": "2026-06-11T14:00:00Z" } }
@@ -432,6 +445,7 @@ Supprimer (annuler) un enlèvement.
 
 ### `POST /api/v1/cargo/pickups/{id}/cancel`
 Annuler un enlèvement.
+
 ```json
 // Response 200
 { "success": true, "data": { "id": "pck_001a2b3c", "status": "CANCELLED", "cancelledAt": "2026-06-11T14:00:00Z" } }
@@ -443,6 +457,7 @@ Annuler un enlèvement.
 
 ### `GET /api/v1/cargo/carriers`
 Lister les transporteurs.
+
 ```json
 // Response 200
 {
@@ -465,6 +480,7 @@ Lister les transporteurs.
 
 ### `POST /api/v1/cargo/carriers`
 Ajouter un transporteur.
+
 ```json
 // Request
 {
@@ -486,6 +502,7 @@ Ajouter un transporteur.
 
 ### `GET /api/v1/cargo/carriers/{code}`
 Détail d'un transporteur.
+
 ```json
 // Response 200
 {
@@ -509,6 +526,7 @@ Détail d'un transporteur.
 
 ### `PUT /api/v1/cargo/carriers/{code}`
 Modifier un transporteur.
+
 ```json
 // Request
 { "active": true, "settings": { "timeoutMs": 15000, "retryMaxAttempts": 5 } }
@@ -519,6 +537,7 @@ Modifier un transporteur.
 
 ### `DELETE /api/v1/cargo/carriers/{code}`
 Supprimer un transporteur.
+
 ```json
 // Response 200
 { "success": true, "data": { "deleted": true } }
@@ -526,6 +545,7 @@ Supprimer un transporteur.
 
 ### `PATCH /api/v1/cargo/carriers/{code}/toggle`
 Activer/désactiver un transporteur.
+
 ```json
 // Request
 { "active": false, "reason": "API down for maintenance" }
@@ -536,6 +556,7 @@ Activer/désactiver un transporteur.
 
 ### `POST /api/v1/cargo/carriers/{code}/test`
 Tester la connexion au transporteur.
+
 ```json
 // Response 200
 {
@@ -556,6 +577,7 @@ Tester la connexion au transporteur.
 
 ### `PUT /api/v1/cargo/carriers/{code}/credentials`
 Mettre à jour les identifiants.
+
 ```json
 // Request
 {
@@ -571,10 +593,11 @@ Mettre à jour les identifiants.
 
 ### `POST /api/v1/cargo/carriers/{code}/services`
 Ajouter un service au transporteur.
+
 ```json
 // Request
 {
-  "code": "DHL_ECO",g
+  "code": "DHL_ECO",
   "name": "DHL Economy Select",
   "description": "Economy international shipping",
   "maxWeight": 70,
@@ -595,6 +618,7 @@ Ajouter un service au transporteur.
 
 ### `POST /api/v1/cargo/addresses/validate`
 Valider une adresse.
+
 ```json
 // Request
 {

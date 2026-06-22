@@ -574,7 +574,7 @@ Ajouter un service au transporteur.
 ```json
 // Request
 {
-  "code": "DHL_ECO",g
+  "code": "DHL_ECO",
   "name": "DHL Economy Select",
   "description": "Economy international shipping",
   "maxWeight": 70,
